@@ -1,0 +1,2775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TRANCE — Trustless Crowdfunding on BSC</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0a0f0a;--surface:rgba(14,22,14,.94);--border:rgba(34,197,94,.18);
+  --green:#22c55e;--green-dim:rgba(34,197,94,.1);--green-glow:rgba(34,197,94,.35);
+  --gold:#4ade80;--gold-dim:rgba(74,222,128,.1);--red:#ef4444;--orange:#f97316;
+  --text:#e2e8f0;--muted:#6b7280;--radius:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(34,197,94,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(34,197,94,.04) 1px,transparent 1px);
+  background-size:48px 48px;animation:gridDrift 20s linear infinite;}
+@keyframes gridDrift{0%{background-position:0 0}100%{background-position:48px 48px}}
+.blob{position:fixed;border-radius:50%;filter:blur(120px);opacity:.1;pointer-events:none;z-index:0;animation:blobF 8s ease-in-out infinite;}
+.blob-1{width:600px;height:600px;background:#22c55e;top:-200px;left:-200px;}
+.blob-2{width:400px;height:400px;background:#10b981;bottom:-100px;right:-100px;animation-delay:4s;}
+@keyframes blobF{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(30px) scale(1.05)}}
+.app{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:24px 20px 60px;}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 0 32px;flex-wrap:wrap;gap:16px;}
+.logo{display:flex;align-items:center;gap:12px;}
+.logo-icon{width:44px;height:44px;background:linear-gradient(135deg,#22c55e,#15803d);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 24px rgba(34,197,94,.5);}
+.logo-text{font-size:22px;font-weight:800;letter-spacing:-.5px;}.logo-text span{color:var(--green);}
+.logo-badge{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);background:rgba(34,197,94,.06);border:1px solid var(--border);padding:4px 10px;border-radius:20px;margin-top:2px;display:block;}
+#chain-name{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:4px 10px;border-radius:6px;background:rgba(34,197,94,.08);color:var(--gold);border:1px solid rgba(34,197,94,.15);}
+#connect-btn{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;padding:12px 24px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#22c55e,#15803d);color:#0a0f0a;box-shadow:0 4px 20px rgba(34,197,94,.25);transition:all .2s;}
+#connect-btn:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(34,197,94,.4);}
+#wallet-pill{display:none;align-items:center;gap:10px;background:var(--green-dim);border:1px solid var(--border);border-radius:30px;padding:8px 16px 8px 10px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--green);}
+.wallet-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px #22c55e;animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+#disconnect-btn{background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:2px 6px;border-radius:6px;transition:color .15s;}
+#disconnect-btn:hover{color:var(--red);}
+#net-warn{display:none;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.3);border-radius:12px;padding:14px 20px;margin-bottom:20px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--orange);text-align:center;}
+.btn{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;padding:12px 24px;border-radius:10px;border:none;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.btn-primary{background:linear-gradient(135deg,#22c55e,#15803d);color:#0a0f0a;box-shadow:0 4px 20px rgba(34,197,94,.25);}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(34,197,94,.4);}
+.btn-secondary{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(34,197,94,.25);}
+.btn-secondary:hover{background:rgba(34,197,94,.2);}
+.btn-ghost{background:var(--green-dim);color:var(--green);border:1px solid var(--border);}
+.btn-ghost:hover{background:rgba(34,197,94,.2);}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;}
+.pool-banner{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:24px;}
+.pool-stat{background:rgba(34,197,94,.04);border:1px solid rgba(34,197,94,.1);border-radius:10px;padding:14px 18px;display:flex;flex-direction:column;gap:4px;}
+.pool-stat-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.pool-stat-value{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:var(--gold);}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:16px;margin-bottom:24px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;backdrop-filter:blur(16px);position:relative;overflow:hidden;transition:border-color .2s,transform .2s;animation:fadeUp .5s ease both;}
+.stat-card:hover{border-color:rgba(34,197,94,.25);transform:translateY(-2px);}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#22c55e,transparent);opacity:0;transition:opacity .3s;}
+.stat-card:hover::before{opacity:1;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.stat-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;}
+.stat-value{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:var(--green);line-height:1;margin-bottom:4px;}
+.stat-value.gold{color:var(--gold);}.stat-value.muted{color:var(--text);font-size:18px;}
+.stat-sub{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+.stat-usdt{font-family:'IBM Plex Mono',monospace;font-size:11px;color:rgba(34,197,94,.7);margin-top:3px;min-height:14px;}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;}
+@media(max-width:680px){.panels{grid-template-columns:1fr;}}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;backdrop-filter:blur(16px);animation:fadeUp .5s ease both;}
+.panel-title{font-size:15px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;color:var(--text);}
+.panel-title .dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px #22c55e;}
+.deposit-form{display:flex;flex-direction:column;gap:14px;}
+.quick-amounts{display:flex;gap:8px;flex-wrap:wrap;}
+.quick-btn{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:rgba(34,197,94,.05);color:var(--muted);cursor:pointer;transition:all .15s;}
+.quick-btn:hover{border-color:var(--green);color:var(--green);background:var(--green-dim);}
+input{background:rgba(0,0,0,.4);border:1px solid var(--border);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:13px;padding:12px 14px;border-radius:10px;outline:none;transition:border-color .2s,box-shadow .2s;width:100%;}
+input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(34,197,94,.1);}
+input::placeholder{color:var(--muted);}
+label{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.field-wrap{display:flex;flex-direction:column;gap:6px;}
+.info-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:2px;}
+.info-key{font-family:'IBM Plex Mono',monospace;color:var(--muted);font-size:12px;}
+.info-val{font-family:'IBM Plex Mono',monospace;font-weight:500;}
+.info-val.green{color:var(--green);}.info-val.gold{color:var(--gold);}
+.claim-info{background:rgba(0,0,0,.2);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
+.progress-wrap{margin-top:4px;}
+.progress-header{display:flex;justify-content:space-between;margin-bottom:8px;}
+.progress-bar{height:6px;background:rgba(255,255,255,.06);border-radius:10px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--green),#86efac);transition:width .6s ease;box-shadow:0 0 10px rgba(34,197,94,.5);}
+.allowance-row{display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,.2);border-radius:8px;padding:8px 12px;}
+.roi-done-banner{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:14px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--red);margin-bottom:12px;}
+.note-box{background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:12px 16px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gold);line-height:1.7;margin-bottom:8px;}
+.ref-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;backdrop-filter:blur(16px);margin-bottom:24px;animation:fadeUp .5s ease both;}
+.income-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-bottom:20px;}
+.iscard{background:rgba(0,0,0,.28);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+.iscard-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;}
+.iscard-value{font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:700;line-height:1;}
+.iscard-value.gold{color:var(--gold);}.iscard-value.green{color:var(--green);}
+.iscard-sub{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px;}
+.lit-wrap{overflow-x:auto;margin-top:4px;}
+.lit{width:100%;border-collapse:collapse;}
+.lit thead th{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.9px;padding:9px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+.lit tbody td{font-family:'IBM Plex Mono',monospace;font-size:12px;padding:10px 12px;border-bottom:1px solid rgba(34,197,94,.05);vertical-align:middle;}
+.lit tbody tr:last-child td{border-bottom:none;}
+.lit tbody tr:hover td{background:rgba(34,197,94,.025);}
+.lvl-badge{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;font-size:11px;font-weight:700;border:1px solid;}
+.lb-1{background:rgba(34,197,94,.15);color:#4ade80;border-color:rgba(34,197,94,.3);}
+.lb-2{background:rgba(34,197,94,.12);color:#22c55e;border-color:rgba(34,197,94,.25);}
+.lb-3{background:rgba(16,185,129,.1);color:#10b981;border-color:rgba(16,185,129,.25);}
+.lb-4{background:rgba(5,150,105,.1);color:#059669;border-color:rgba(5,150,105,.25);}
+.lb-5{background:rgba(16,185,129,.1);color:#10b981;border-color:rgba(16,185,129,.2);}
+.lb-6{background:rgba(52,211,153,.1);color:#34d399;border-color:rgba(52,211,153,.2);}
+.lb-7{background:rgba(110,231,183,.08);color:#6ee7b7;border-color:rgba(110,231,183,.2);}
+.lb-8{background:rgba(167,139,250,.1);color:#a78bfa;border-color:rgba(167,139,250,.2);}
+.lb-9{background:rgba(239,68,68,.1);color:#fca5a5;border-color:rgba(239,68,68,.2);}
+.rate-pill{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 9px;border-radius:20px;background:rgba(34,197,94,.07);color:var(--green);border:1px solid rgba(34,197,94,.15);}
+.s-active{display:inline-flex;align-items:center;gap:4px;font-family:'IBM Plex Mono',monospace;font-size:10px;padding:3px 9px;border-radius:20px;background:rgba(34,197,94,.08);color:var(--green);border:1px solid rgba(34,197,94,.18);}
+.s-locked{display:inline-flex;align-items:center;gap:4px;font-family:'IBM Plex Mono',monospace;font-size:10px;padding:3px 9px;border-radius:20px;background:rgba(239,68,68,.07);color:var(--red);border:1px solid rgba(239,68,68,.18);}
+.ref-bottom{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;}
+@media(max-width:540px){.ref-bottom{grid-template-columns:1fr;}}
+.ref-stat-box{background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+.ref-stat-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.ref-link-row{display:flex;gap:10px;}
+.ref-link-box{flex:1;background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);word-break:break-all;display:flex;align-items:center;}
+.event-feed-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;backdrop-filter:blur(16px);margin-bottom:24px;animation:fadeUp .5s ease both;}
+.feed-controls{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.feed-filter{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:rgba(10,7,0,.35);color:var(--muted);cursor:pointer;transition:all .15s;}
+.feed-filter.active-all,.feed-filter.active-income{border-color:var(--green);background:var(--green-dim);color:var(--green);}
+.feed-filter.active-missed{border-color:var(--red);background:rgba(239,68,68,.1);color:var(--red);}
+.feed-filter.active-legclaim{border-color:#34d399;background:rgba(52,211,153,.1);color:#34d399;}
+#feed-status{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-left:auto;}
+.feed-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle;}
+.feed-dot.live{background:var(--green);box-shadow:0 0 6px #22c55e;animation:pulse 2s ease-in-out infinite;}
+.feed-dot.loading{background:var(--gold);}
+.feed-dot.off{background:var(--muted);}
+#event-list{display:flex;flex-direction:column;gap:0;max-height:440px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;background:rgba(0,0,0,.2);border-radius:10px;padding:6px;}
+#event-list::-webkit-scrollbar{width:4px;}
+#event-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.ev-item{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:10px;border:1px solid;animation:evSlide .3s ease;}
+@keyframes evSlide{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.ev-income{background:rgba(34,197,94,.04);border-color:rgba(34,197,94,.12);}
+.ev-missed{background:rgba(239,68,68,.04);border-color:rgba(239,68,68,.1);}
+.ev-legclaim{background:rgba(52,211,153,.04);border-color:rgba(52,211,153,.12);}
+.ev-badge{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0;margin-top:1px;}
+.ev-badge-i{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2);}
+.ev-badge-m{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);}
+.ev-badge-lc{background:rgba(52,211,153,.1);color:#34d399;border:1px solid rgba(52,211,153,.2);}
+.ev-body{flex:1;min-width:0;}
+.ev-row1{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.ev-level{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--gold);}
+.ev-amount{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--green);font-weight:600;}
+.ev-amount.missed{color:var(--red);}
+.ev-amount.legclaim{color:#34d399;}
+.ev-time{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-top:3px;}
+.ev-empty{text-align:center;padding:32px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
+.feed-load-btn{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:6px 14px;border-radius:7px;border:1px solid var(--border);background:rgba(10,7,0,.35);color:var(--muted);cursor:pointer;transition:all .15s;}
+.feed-load-btn:hover{border-color:var(--green);color:var(--green);}
+hr{border:none;border-top:1px solid var(--border);margin:20px 0;}
+#countdown{font-family:'IBM Plex Mono',monospace;font-size:22px;color:var(--gold);text-align:center;padding:12px;letter-spacing:2px;display:none;}
+.tx-link{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;display:block;}
+.tx-link a{color:var(--green);text-decoration:none;}
+.chip-g{background:var(--green-dim);color:var(--green);display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 9px;border-radius:20px;}
+.chip-r{background:rgba(239,68,68,.1);color:var(--red);display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 9px;border-radius:20px;}
+.chip-b{background:rgba(52,211,153,.1);color:#34d399;display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 9px;border-radius:20px;}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(10,7,0,.35);border-top-color:currentColor;border-radius:50%;animation:gSpin .7s linear infinite;vertical-align:middle;margin-right:6px;}
+@keyframes gSpin{to{transform:rotate(360deg)}}
+#toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);background:#0f1610;border:1px solid var(--border);border-radius:12px;padding:14px 24px;font-size:14px;font-family:'IBM Plex Mono',monospace;z-index:9999;transition:transform .3s ease;box-shadow:0 8px 40px rgba(0,0,0,.6);max-width:420px;text-align:center;}
+#toast.show{transform:translateX(-50%) translateY(0);}
+#toast.success{color:var(--green);border-color:rgba(34,197,94,.3);}
+#toast.error{color:var(--red);border-color:rgba(239,68,68,.3);}
+#toast.info{color:var(--gold);border-color:rgba(34,197,94,.3);}
+/* Big success banner */
+#success-banner{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:10000;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;}
+#success-banner.show{display:flex;}
+.sb-box{background:var(--surface);border:2px solid var(--green);border-radius:20px;padding:36px 40px;text-align:center;max-width:420px;width:90%;animation:sbIn .4s ease;box-shadow:0 0 60px rgba(34,197,94,.25);}
+@keyframes sbIn{from{opacity:0;transform:scale(.85) translateY(20px)}to{opacity:1;transform:none}}
+.sb-icon{font-size:48px;margin-bottom:12px;}
+.sb-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--green);margin-bottom:8px;}
+.sb-msg{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--text);line-height:1.6;margin-bottom:6px;}
+.sb-tx{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-top:8px;word-break:break-all;}
+.sb-tx a{color:var(--green);text-decoration:none;}
+.sb-close{margin-top:16px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;padding:10px 28px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#22c55e,#15803d);color:#0a0f0a;box-shadow:0 4px 20px rgba(34,197,94,.25);transition:all .2s;}
+.sb-close:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(34,197,94,.4);}
+footer{margin-top:48px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);padding-bottom:24px;}
+footer span{color:var(--green);}
+/* Leg Progress Bars */
+.leg-progress-item{background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;}
+.leg-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.leg-addr{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gold);}
+.leg-depth{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--green);}
+.leg-tip{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-top:6px;word-break:break-all;}
+/* Wallet Modal */
+#wm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(10px);z-index:9000;align-items:center;justify-content:center;}
+#wm-overlay.open{display:flex;}
+#wm-box{background:#0a1a0e;border:1px solid rgba(34,197,94,.35);border-radius:22px;padding:28px 22px 20px;width:100%;max-width:440px;margin:16px;box-shadow:0 28px 90px rgba(0,0,0,.8);animation:wmIn .25s ease;max-height:92vh;overflow-y:auto;}
+@keyframes wmIn{from{opacity:0;transform:scale(.94) translateY(12px)}to{opacity:1;transform:none}}
+.wm-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.wm-title{font-size:18px;font-weight:800;color:#e2e8f0;}
+.wm-close{background:none;border:none;color:#6b7280;font-size:22px;cursor:pointer;padding:4px 8px;border-radius:8px;line-height:1;transition:color .15s;}
+.wm-close:hover{color:#e2e8f0;}
+.wm-list{display:flex;flex-direction:column;gap:9px;}
+.wm-row{display:flex;align-items:center;gap:14px;padding:13px 15px;border-radius:13px;border:1px solid rgba(34,197,94,.12);background:rgba(34,197,94,.04);cursor:pointer;transition:all .2s;}
+.wm-row:hover{border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.09);}
+.wm-row.busy{pointer-events:none;opacity:.7;}
+.wm-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;background:rgba(10,7,0,.35);overflow:hidden;}
+.wm-icon img{width:100%;height:100%;object-fit:contain;}
+.wm-name{font-size:15px;font-weight:700;margin-bottom:2px;color:#e2e8f0;}
+.wm-desc{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6b7280;}
+.wm-badge{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:3px 9px;border-radius:20px;white-space:nowrap;margin-left:auto;}
+.wm-badge.ok{background:rgba(34,197,94,.13);color:#22c55e;border:1px solid rgba(34,197,94,.2);}
+.wm-badge.no{background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2);}
+.wm-badge.qr{background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.2);}
+.wm-badge.dim{background:rgba(255,255,255,.05);color:#6b7280;border:1px solid rgba(34,197,94,.08);}
+.wm-sep{display:flex;align-items:center;gap:10px;margin:4px 0;color:#6b7280;font-size:11px;font-family:'IBM Plex Mono',monospace;}
+.wm-sep::before,.wm-sep::after{content:'';flex:1;height:1px;background:rgba(34,197,94,.12);}
+#wm-net-sel{display:none;background:rgba(0,0,0,.28);border:1px solid rgba(34,197,94,.12);border-radius:12px;padding:14px 12px;}
+#wm-net-sel.open{display:block;}
+.wm-net-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.wm-net-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.wm-net-btn{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;padding:9px 6px;border-radius:10px;border:1px solid rgba(34,197,94,.12);background:rgba(34,197,94,.04);color:#6b7280;cursor:pointer;text-align:center;transition:all .18s;}
+.wm-net-btn:hover{border-color:rgba(34,197,94,.3);color:#22c55e;}
+.wm-net-btn.active{border-color:#22c55e;background:rgba(34,197,94,.14);color:#22c55e;}
+#wm-qr-wrap{display:none;flex-direction:column;align-items:center;gap:12px;padding:16px 14px;border:1px solid rgba(34,197,94,.12);border-radius:14px;background:rgba(0,0,0,.25);}
+#wm-qr-wrap.open{display:flex;}
+.wm-spinner{width:36px;height:36px;border:3px solid rgba(34,197,94,.12);border-top-color:#22c55e;border-radius:50%;animation:wmSpin .7s linear infinite;}
+@keyframes wmSpin{to{transform:rotate(360deg)}}
+.wm-qr-img{background:#fff;border-radius:12px;padding:10px;}
+#wm-qr-canvas{display:block;border-radius:6px;}
+.wm-status{display:flex;align-items:center;gap:8px;width:100%;font-family:'IBM Plex Mono',monospace;font-size:11px;padding:8px 12px;border-radius:8px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);color:#22c55e;}
+.wm-status.green{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.2);color:#22c55e;}
+.wm-sdot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
+.wm-uri{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6b7280;word-break:break-all;text-align:center;width:100%;border:1px solid rgba(34,197,94,.12);border-radius:8px;padding:8px 10px;background:rgba(10,7,0,.35);cursor:pointer;max-height:48px;overflow:hidden;}
+.wm-btn-row{display:flex;gap:8px;width:100%;}
+.wm-btn{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;padding:8px 12px;border-radius:9px;cursor:pointer;flex:1;background:rgba(34,197,94,.1);color:#22c55e;border:1px solid rgba(34,197,94,.18);transition:all .2s;}
+.wm-btn:hover{background:rgba(34,197,94,.2);}
+.wm-err{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:12px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#ef4444;text-align:center;width:100%;}
+.wm-dl-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:100%;}
+.wm-dl-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-radius:10px;border:1px solid rgba(34,197,94,.12);background:rgba(34,197,94,.03);cursor:pointer;transition:all .2s;font-size:10px;font-weight:700;color:#6b7280;font-family:'IBM Plex Mono',monospace;}
+.wm-dl-btn:hover{border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.1);color:#22c55e;}
+.wm-foot{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6b7280;text-align:center;margin-top:14px;padding-top:12px;border-top:1px solid rgba(34,197,94,.08);}
+.wm-foot a{color:#22c55e;text-decoration:none;}
+
+/* ── Tab section system ──────────────────────────────── */
+.tab-pane{display:none;animation:fadeUp .35s ease both;}
+.tab-pane.active{display:block;}
+.tab-empty{background:rgba(34,197,94,.04);border:1px dashed rgba(34,197,94,.25);border-radius:14px;padding:40px 20px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);margin-bottom:24px;}
+.tab-empty strong{display:block;color:var(--gold);font-size:14px;margin-bottom:6px;font-family:'Syne',sans-serif;font-weight:700;letter-spacing:.5px;}
+
+/* Bottom navigation */
+.bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(10,15,10,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--border);padding:8px 6px calc(8px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 32px rgba(0,0,0,.5);}
+.bn-grid{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);gap:4px;}
+.bn-btn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;transition:all .18s;position:relative;}
+.bn-btn:hover{color:var(--green);background:rgba(34,197,94,.06);}
+.bn-btn.active{color:var(--green);background:rgba(34,197,94,.12);}
+.bn-btn.active::before{content:'';position:absolute;top:-9px;left:50%;transform:translateX(-50%);width:28px;height:3px;border-radius:0 0 4px 4px;background:var(--green);box-shadow:0 0 10px var(--green-glow);}
+.bn-icon{font-size:20px;line-height:1;}
+.bn-label{font-size:9.5px;}
+.app{padding-bottom:120px!important;}
+@media(max-width:480px){.bn-icon{font-size:18px;}.bn-label{font-size:9px;}.bn-btn{padding:6px 2px;}}
+
+/* ─── Mobile-fit responsive rules (≤768px / ≤480px / ≤360px) ───────── */
+@media(max-width:768px){
+  .app{padding:14px 12px 100px;}
+  header{padding:12px 0 18px;gap:10px;}
+  .logo-icon{width:38px;height:38px;font-size:18px;}
+  .logo-text{font-size:18px;}
+  .logo-badge{font-size:9px;padding:3px 8px;}
+  .panel{padding:18px 14px;border-radius:12px;}
+  .panel-title{font-size:13px;}
+  .stats-grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px;}
+  .stat-card{padding:14px 12px;}
+  .stat-value{font-size:20px;}
+  .stat-label{font-size:11px;}
+  .income-summary{grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:14px;}
+  .iscard{padding:10px 12px;}
+  .iscard-value{font-size:16px;}
+  .btn{padding:10px 16px;font-size:13px;}
+  .lit{font-size:11px;}
+  .lit th,.lit td{padding:8px 6px!important;}
+  .pool-banner{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))!important;gap:10px;padding:14px;}
+  .ref-card,.event-feed-card,.leg-card{padding:16px 12px!important;}
+  .lu-tabs{padding:3px;gap:2px;}
+  .lu-tab-btn{font-size:10px;padding:7px 6px;min-width:54px;}
+  .lu-addr-bar{font-size:10px;padding:8px 10px;}
+  .lu-addr-bar .lu-val{font-size:10px;}
+  .info-row{font-size:11px;}
+  .lu-info-panel{padding:12px;}
+  .lu-events-list,#event-list{max-height:360px;}
+  .lu-ev-item{padding:8px 10px;font-size:10px;}
+  /* Banner / Modal */
+  .modal-content{padding:20px 16px!important;max-width:94vw!important;}
+  .wm-grid{grid-template-columns:1fr 1fr!important;}
+  /* Wallet pill — keep on one line */
+  #wallet-pill{font-size:11px;padding:4px 10px;}
+  #my-id-badge{font-size:10px;padding:3px 9px;}
+  #chain-name{font-size:10px;}
+}
+@media(max-width:480px){
+  .app{padding:10px 8px 110px;}
+  .logo-text{font-size:16px;}
+  .logo-badge{display:none;}
+  .panel{padding:14px 10px;}
+  .stats-grid{grid-template-columns:1fr 1fr;gap:8px;}
+  .stat-card{padding:11px 10px;}
+  .stat-value{font-size:17px;}
+  .stat-label{font-size:10px;}
+  .stat-sub,.stat-usdt{font-size:9px;}
+  .income-summary{grid-template-columns:1fr 1fr;gap:7px;}
+  .iscard{padding:9px 10px;}
+  .iscard-value{font-size:14px;}
+  .iscard-label,.iscard-sub{font-size:9px;}
+  .lit{font-size:10px;}
+  .lit th,.lit td{padding:6px 4px!important;}
+  .panel-title{font-size:12px;}
+  .pool-banner{grid-template-columns:1fr 1fr!important;}
+  .pool-stat{padding:10px 8px!important;}
+  .pool-stat-value{font-size:15px!important;}
+  /* Table headers can become 2-col instead of 6 */
+  #lu-team-count-table thead th:nth-child(n+5),
+  #lu-team-count-table tbody td:nth-child(n+5){display:none;}
+  /* Lookup sub-tab buttons — icon only on tiny screens, label visible if fits */
+  .lu-tab-btn{min-width:46px;padding:6px 4px;font-size:9px;}
+  .info-row{flex-wrap:wrap;gap:4px;}
+  .info-key{font-size:10px;}
+  .info-val{font-size:11px;}
+  /* Bottom nav slimmer */
+  .bn-btn{padding:5px 1px;}
+  .bn-icon{font-size:17px;}
+  .bn-label{font-size:8.5px;}
+  .app{padding-bottom:96px!important;}
+  /* Modal full-width */
+  .modal-content{max-width:96vw!important;padding:16px 12px!important;}
+  .wm-grid{grid-template-columns:1fr!important;}
+  /* TX link — wrap nicely */
+  .tx-link{font-size:10px;word-break:break-all;}
+  /* Form inputs */
+  input[type="text"],input[type="number"]{font-size:13px!important;padding:10px 12px!important;}
+  /* Address inputs */
+  #lookup-addr,#dep-ref{font-size:11px!important;}
+  /* TRT card title etc */
+  .note-box{font-size:9.5px!important;line-height:1.5;}
+
+  /* ─── DEPOSIT TAB specific (≤480px) ──────────────────── */
+  /* Quick-amount buttons: 3-col grid so MAX is visible without overflow */
+  .quick-amounts{display:grid!important;grid-template-columns:repeat(3,1fr);gap:6px;}
+  .quick-btn{padding:8px 6px;font-size:11px;min-height:36px;}
+  /* Number input: 16px prevents iOS zoom; pad-right for native spinner */
+  #dep-amount{font-size:16px!important;padding:11px 12px!important;}
+  #dep-ref{font-size:11px!important;letter-spacing:-.3px;}
+  /* Field labels */
+  .field-wrap label{font-size:11px;}
+  /* Fee/ref/pool box: tighter rows, allow value to wrap underneath label */
+  .deposit-form .info-row,
+  #panels-deposit .info-row{font-size:11px;align-items:flex-start;gap:8px;}
+  #panels-deposit .info-key{flex-shrink:0;line-height:1.45;}
+  #panels-deposit .info-val{text-align:right;word-break:break-word;line-height:1.45;}
+  /* TRT pending — keep "💎 Claimable TRT" prominent but fit */
+  #trt-claimable{font-size:14px!important;}
+  /* Allowance row */
+  .allowance-row{padding:7px 10px;}
+  .allowance-row span{font-size:10px!important;}
+  /* TRT Tier System table — hide USD column on phones (it's $30×TRT, easy to compute) */
+  #trt-tier-table thead th:nth-child(4),
+  #trt-tier-table tbody td:nth-child(4){display:none;}
+  #trt-tier-table th,#trt-tier-table td{padding:7px 5px!important;font-size:10px!important;}
+  #trt-tier-table .lvl-badge{font-size:9px;padding:2px 6px;}
+  /* Action buttons full-width feel */
+  #dep-action-btn,#trt-claim-btn{font-size:13px;padding:13px 16px;}
+}
+@media(max-width:360px){
+  /* Even tighter for tiny phones */
+  .quick-amounts{grid-template-columns:repeat(3,1fr);}
+  .quick-btn{padding:7px 4px;font-size:10px;min-height:34px;}
+  /* Hide both USD AND Status columns to leave only Tier/Range/TRT */
+  #trt-tier-table thead th:nth-child(5),
+  #trt-tier-table tbody td:nth-child(5){display:none;}
+  #trt-tier-table th,#trt-tier-table td{padding:6px 4px!important;font-size:9.5px!important;}
+  .app{padding:8px 6px 110px;}
+  .panel{padding:12px 8px;}
+  .stat-card{padding:9px 7px;}
+  .stat-value{font-size:15px;}
+  .stat-label{font-size:9px;}
+  .iscard{padding:8px 8px;}
+  .iscard-value{font-size:13px;}
+  .lit{font-size:9.5px;}
+  .lit th,.lit td{padding:5px 3px!important;}
+  .lu-tab-btn{font-size:9px;min-width:40px;padding:5px 3px;}
+  /* Hide non-essential 50-level cols entirely on tiny */
+  #lu-team-count-table thead th:nth-child(n+3),
+  #lu-team-count-table tbody td:nth-child(n+3){display:none;}
+  .bn-icon{font-size:15px;}
+  .bn-label{font-size:8px;}
+}
+
+/* ── Lookup sub-tabs ─────────────────────────────────── */
+.lu-addr-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(34,197,94,.06);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-family:'IBM Plex Mono',monospace;font-size:11px;}
+.lu-addr-bar .lu-lbl{color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-size:10px;}
+.lu-addr-bar .lu-val{color:var(--green);word-break:break-all;font-weight:600;}
+.lu-tabs{display:flex;gap:4px;overflow-x:auto;padding:4px;background:rgba(0,0,0,.25);border-radius:10px;margin-bottom:14px;}
+.lu-tab-btn{flex:1;min-width:70px;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;padding:9px 10px;border-radius:8px;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:all .18s;white-space:nowrap;}
+.lu-tab-btn:hover{color:var(--green);background:rgba(34,197,94,.06);}
+.lu-tab-btn.active{background:rgba(34,197,94,.15);color:var(--green);box-shadow:0 0 12px rgba(34,197,94,.15);}
+.lu-pane{display:none;animation:fadeUp .3s ease both;}
+.lu-pane.active{display:block;}
+.lu-section-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.lu-section-title .dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px #22c55e;}
+.lu-info-panel{background:rgba(0,0,0,.2);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px;margin-bottom:14px;}
+.lu-progress-wrap{margin-top:10px;}
+.lu-note{background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:10px 14px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gold);line-height:1.6;margin-bottom:12px;}
+.lu-events-list{max-height:420px;overflow-y:auto;background:rgba(0,0,0,.2);border-radius:10px;padding:8px;}
+.lu-ev-item{padding:10px 12px;border-bottom:1px solid rgba(34,197,94,.08);font-family:'IBM Plex Mono',monospace;font-size:11px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+.lu-ev-item:last-child{border-bottom:none;}
+.lu-ev-type{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap;}
+.lu-ev-type.income{background:rgba(34,197,94,.15);color:var(--green);}
+.lu-ev-type.missed{background:rgba(239,68,68,.12);color:var(--red);}
+.lu-ev-type.legclaim{background:rgba(52,211,153,.12);color:#34d399;}
+.lu-ev-type.legmissed{background:rgba(249,115,22,.12);color:var(--orange);}
+.lu-ev-amt{font-weight:600;}
+</style>
+</head>
+<body>
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<!-- Wallet Connect Modal -->
+<div id="wm-overlay">
+  <div id="wm-box">
+    <div class="wm-head"><div class="wm-title">Connect Wallet</div><button class="wm-close" id="wm-close">&#x2715;</button></div>
+    <div class="wm-list">
+      <div class="wm-row" id="wm-mm"><div class="wm-icon"><img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" onerror="this.parentNode.textContent='MM'"/></div><div><div class="wm-name">MetaMask</div><div class="wm-desc">Browser extension</div></div><span class="wm-badge dim" id="bd-mm">...</span></div>
+      <div class="wm-row" id="wm-trust"><div class="wm-icon" style="background:#16a34a;font-size:18px;color:#fff;font-weight:700;">T</div><div><div class="wm-name">Trust Wallet</div><div class="wm-desc">Mobile &amp; browser</div></div><span class="wm-badge dim" id="bd-trust">...</span></div>
+      <div class="wm-row" id="wm-tp"><div class="wm-icon" style="background:#15803d;font-size:16px;color:#fff;font-weight:700;">TP</div><div><div class="wm-name">TokenPocket</div><div class="wm-desc">Multi-chain wallet</div></div><span class="wm-badge dim" id="bd-tp">...</span></div>
+      <div class="wm-row" id="wm-cb"><div class="wm-icon" style="background:#166534;font-size:16px;color:#fff;font-weight:700;">CB</div><div><div class="wm-name">Coinbase Wallet</div><div class="wm-desc">Self-custody</div></div><span class="wm-badge dim" id="bd-cb">...</span></div>
+      <div class="wm-row" id="wm-okx"><div class="wm-icon" style="background:#1a1a2e;font-size:14px;color:#fff;font-weight:700;">OKX</div><div><div class="wm-name">OKX Wallet</div><div class="wm-desc">OKX exchange wallet</div></div><span class="wm-badge dim" id="bd-okx">...</span></div>
+      <div class="wm-row" id="wm-rabby"><div class="wm-icon" style="background:#059669;font-size:16px;color:#fff;font-weight:700;">R</div><div><div class="wm-name">Rabby Wallet</div><div class="wm-desc">DeFi-focused</div></div><span class="wm-badge dim" id="bd-rabby">...</span></div>
+      <div class="wm-row" id="wm-any" style="display:none;"><div class="wm-icon" style="font-size:20px;color:var(--green);">W3</div><div><div class="wm-name">Browser Wallet</div><div class="wm-desc">Any injected wallet</div></div><span class="wm-badge ok">Detected</span></div>
+      <div class="wm-row" id="wm-net-row" style="display:none;"><div class="wm-icon" style="font-size:18px;color:var(--gold);">NET</div><div><div class="wm-name">Switch Network</div><div class="wm-desc" id="wm-cur-net">Current: --</div></div><span class="wm-badge qr" id="wm-net-badge">Change</span></div>
+      <div id="wm-net-sel"><div class="wm-net-label">Select Network</div><div class="wm-net-grid" id="wm-net-grid"></div></div>
+      <div class="wm-sep">WALLETCONNECT QR</div>
+      <div class="wm-row" id="wm-wc">
+        <div class="wm-icon" style="background:linear-gradient(135deg,#22c55e,#059669);color:#fff;font-size:13px;font-weight:700;">WC</div>
+        <div><div class="wm-name">WalletConnect</div><div class="wm-desc">QR scan - 300+ wallets</div></div>
+        <span class="wm-badge qr" id="bd-wc">Show QR</span>
+      </div>
+      <div id="wm-qr-wrap">
+        <div id="wm-qr-loading" style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px 0;"><div class="wm-spinner"></div><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6b7280;">Initializing WalletConnect...</div></div>
+        <div id="wm-qr-ready" style="display:none;flex-direction:column;align-items:center;gap:12px;width:100%;">
+          <div class="wm-qr-img"><canvas id="wm-qr-canvas" width="210" height="210"></canvas></div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#e2e8f0;text-align:center;">Scan with any WalletConnect wallet</div>
+          <div class="wm-status" id="wm-qr-status"><div class="wm-sdot"></div><span id="wm-qr-stxt">Waiting for scan...</span></div>
+          <div class="wm-uri" id="wm-uri-box">Generating URI...</div>
+          <div class="wm-btn-row"><button class="wm-btn" id="wm-copy-btn">Copy URI</button><button class="wm-btn" id="wm-dl-toggle">Apps</button><button class="wm-btn" id="wm-retry-btn">Retry</button></div>
+          <div id="wm-dl-panel" style="display:none;width:100%;"><div class="wm-dl-grid" id="wm-dl-grid"></div></div>
+        </div>
+        <div id="wm-qr-error" style="display:none;flex-direction:column;align-items:center;gap:10px;width:100%;"><div class="wm-err" id="wm-err-txt">Error.</div><button class="wm-btn" id="wm-retry-err">Retry</button></div>
+      </div>
+    </div>
+    <div class="wm-foot">WalletConnect v2 &middot; <a href="https://cloud.walletconnect.com" target="_blank">cloud.walletconnect.com</a></div>
+  </div>
+</div>
+<!-- App -->
+<div class="app">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">&#x2B21;</div>
+      <div>
+        <div class="logo-text">TR<span>ANCE</span></div>
+        <span class="logo-badge">Trustless &middot; Working &middot; Non-Working &middot; Immutable</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <span id="chain-name">-- Network --</span>
+      <span id="my-id-badge" style="display:none;background:linear-gradient(135deg,#22c55e,#15803d);color:#0a0f0a;font-family:'IBM Plex Mono',monospace;font-weight:800;padding:5px 12px;border-radius:20px;font-size:11px;box-shadow:0 0 12px rgba(34,197,94,.3);">ID #--</span>
+      <div id="wallet-pill"><div class="wallet-dot"></div><span id="wallet-addr">0x0000...0000</span><button id="disconnect-btn" title="Disconnect">&#x2715;</button></div>
+      <button id="connect-btn">Connect Wallet</button>
+    </div>
+  </header>
+  <div id="net-warn"></div>
+  <!-- ═══ TAB: DASHBOARD (part 1 — lookup + pool stats) ═══ -->
+  <div class="tab-pane active" data-tab="home">
+  
+  <!-- Social Media Links -->
+  <div class="ref-card" style="margin-bottom:24px;">
+    <div class="panel-title"><div class="dot"></div>📢 Join Our Community</div>
+    <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap;">
+      <a href="https://youtube.com/@tranceprotocols-q1w?si=-gmyosilA9Qd1D8Z" target="_blank" rel="noopener noreferrer" style="text-decoration:none;flex:1;min-width:180px;">
+        <button class="btn btn-primary" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;">
+          <span style="font-size:18px;">▶️</span>
+          <span>YouTube Channel</span>
+        </button>
+      </a>
+      <a href="https://t.me/Tranceprotocols" target="_blank" rel="noopener noreferrer" style="text-decoration:none;flex:1;min-width:180px;">
+        <button class="btn btn-secondary" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;">
+          <span style="font-size:18px;">✈️</span>
+          <span>Telegram Channel</span>
+        </button>
+      </a>
+    </div>
+  </div>
+  
+  <!-- User Lookup (visible before wallet connect; auto-hidden after connect) -->
+  <div class="ref-card" id="lookup-card" style="margin-bottom:24px;">
+    <div class="panel-title"><div class="dot"></div>🔍 Lookup Any User — Enter Wallet Address or User ID</div>
+    <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+      <input id="lookup-addr" type="text" placeholder="0x... wallet address OR user ID number (e.g. 42)" style="flex:1;min-width:200px;"/>
+      <button class="btn btn-primary" id="lookup-btn" onclick="lookupUser()">Search</button>
+      <button class="btn btn-ghost" id="lookup-clear-btn" onclick="clearLookup()" style="display:none;">Clear</button>
+    </div>
+    <!-- ID Index controls -->
+    <div id="uid-bar" style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:11px;">
+      <span id="uid-status" style="color:var(--muted);">🔢 ID Index: <span id="uid-count">not built</span></span>
+      <button class="btn btn-ghost" id="uid-build-btn" onclick="handleBuildUidIndex(false)" style="padding:6px 14px;font-size:11px;">Build / Update</button>
+      <button class="btn btn-ghost" id="uid-rebuild-btn" onclick="handleBuildUidIndex(true)" style="padding:6px 14px;font-size:11px;display:none;">Rebuild All</button>
+      <div id="uid-progress-wrap" style="display:none;flex:1;min-width:140px;align-items:center;gap:8px;">
+        <div class="progress-bar" style="flex:1;"><div class="progress-fill" id="uid-progress-bar" style="width:0%"></div></div>
+        <span id="uid-progress-txt" style="color:var(--gold);white-space:nowrap;">0%</span>
+      </div>
+    </div>
+    <div id="lookup-result" style="display:none;">
+      <!-- Address bar -->
+      <div class="lu-addr-bar">
+        <span class="lu-lbl">Viewing data for:</span>
+        <span id="lu-id-pill" style="display:none;background:linear-gradient(135deg,#22c55e,#15803d);color:#0a0f0a;font-weight:800;padding:3px 10px;border-radius:20px;font-size:11px;">ID #<span id="lu-id-num">--</span></span>
+        <span class="lu-val" id="lu-addr-display">--</span>
+      </div>
+      <!-- Sub-tabs -->
+      <div class="lu-tabs">
+        <button class="lu-tab-btn active" onclick="showLookupTab('home')" data-lu-tab="home">🏠 Home</button>
+        <button class="lu-tab-btn" onclick="showLookupTab('deposit')" data-lu-tab="deposit">💰 Deposit</button>
+        <button class="lu-tab-btn" onclick="showLookupTab('claim')" data-lu-tab="claim">💎 Claim</button>
+        <button class="lu-tab-btn" onclick="showLookupTab('team')" data-lu-tab="team">👥 Team</button>
+        <button class="lu-tab-btn" onclick="showLookupTab('more')" data-lu-tab="more">⋯ More</button>
+      </div>
+
+      <!-- ═══ SUB-TAB: HOME (full overview) ═══ -->
+      <div class="lu-pane active" data-lu-pane="home">
+        <div class="income-summary">
+          <div class="iscard"><div class="iscard-label">Registered</div><div class="iscard-value green" id="lu-registered">--</div><div class="iscard-sub">account status</div></div>
+          <div class="iscard"><div class="iscard-label">Deposit</div><div class="iscard-value gold" id="lu-deposit">--</div><div class="iscard-sub">current cycle</div></div>
+          <div class="iscard"><div class="iscard-label">Cycle Earned</div><div class="iscard-value gold" id="lu-cycle-earned">--</div><div class="iscard-sub">Claim+Ref+Leg</div></div>
+          <div class="iscard"><div class="iscard-label">Remaining Cap</div><div class="iscard-value green" id="lu-remaining">--</div><div class="iscard-sub">until 200%</div></div>
+          <div class="iscard"><div class="iscard-label">Capped?</div><div class="iscard-value" id="lu-capped">--</div><div class="iscard-sub">2× status</div></div>
+          <div class="iscard"><div class="iscard-label">Claim Progress</div><div class="iscard-value gold" id="lu-roi-pct">--</div><div class="iscard-sub">% of 200% cap</div></div>
+          <div class="iscard"><div class="iscard-label">Directs Qualified</div><div class="iscard-value gold" id="lu-directs">--</div><div class="iscard-sub">direct referrals</div></div>
+          <div class="iscard"><div class="iscard-label">Direct Count</div><div class="iscard-value" id="lu-direct-count">--</div><div class="iscard-sub">total directs</div></div>
+          <div class="iscard"><div class="iscard-label">GrandChild Qualified</div><div class="iscard-value gold" id="lu-grandchild">--</div><div class="iscard-sub">unlocks L4–L9</div></div>
+          <div class="iscard"><div class="iscard-label">Referral Income</div><div class="iscard-value green" id="lu-ref-income">--</div><div class="iscard-sub">all-time</div></div>
+          <div class="iscard"><div class="iscard-label">Leg-Claim Income</div><div class="iscard-value" style="color:#34d399;" id="lu-legclaim">--</div><div class="iscard-sub">all-time</div></div>
+          <div class="iscard"><div class="iscard-label">Missed Income</div><div class="iscard-value" style="color:var(--red);" id="lu-missed">--</div><div class="iscard-sub">passed</div></div>
+          <div class="iscard"><div class="iscard-label">Leg-Claim Missed</div><div class="iscard-value" style="color:var(--red);" id="lu-lcmissed">--</div><div class="iscard-sub">0.5% slot passed</div></div>
+          <div class="iscard"><div class="iscard-label">Leg Depth Count</div><div class="iscard-value gold" id="lu-legcount">--</div><div class="iscard-sub">50-deep legs</div></div>
+          <div class="iscard"><div class="iscard-label">Total Team</div><div class="iscard-value gold" id="lu-team-total">--</div><div class="iscard-sub">all 50 levels</div></div>
+          <div class="iscard"><div class="iscard-label">Referrer</div><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);word-break:break-all;margin-top:6px;" id="lu-referrer">--</div><div class="iscard-sub">upline</div></div>
+        </div>
+      </div>
+
+      <!-- ═══ SUB-TAB: DEPOSIT ═══ -->
+      <div class="lu-pane" data-lu-pane="deposit">
+        <div class="lu-note">Read-only deposit status for this user. Actual deposits use your connected wallet via the Deposit tab.</div>
+        <div class="lu-info-panel">
+          <div class="info-row"><span class="info-key">Current Cycle Deposit</span><span class="info-val gold" id="lu-d-deposit">--</span></div>
+          <div class="info-row"><span class="info-key">Max Return (200%)</span><span class="info-val" id="lu-d-maxret">--</span></div>
+          <div class="info-row"><span class="info-key">Cycle Earned So Far</span><span class="info-val green" id="lu-d-cycle">--</span></div>
+          <div class="info-row"><span class="info-key">Remaining Until Cap</span><span class="info-val green" id="lu-d-remain">--</span></div>
+          <div class="info-row"><span class="info-key">Referrer Upline</span><span class="info-val" id="lu-d-referrer" style="font-size:10px;word-break:break-all;max-width:60%;text-align:right;">--</span></div>
+          <div class="info-row"><span class="info-key">Min Join (DEX)</span><span class="info-val" id="lu-d-minjoin">--</span></div>
+        </div>
+        <div class="lu-progress-wrap">
+          <div class="progress-header"><span class="info-key">Cycle Progress (all income vs 200% cap)</span><span class="info-val green" id="lu-d-pct">0%</span></div>
+          <div class="progress-bar"><div class="progress-fill" id="lu-d-bar" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <!-- ═══ SUB-TAB: CLAIM ═══ -->
+      <div class="lu-pane" data-lu-pane="claim">
+        <div class="lu-note">Read-only claim status for this user. Claims can only happen from the wallet that owns this address.</div>
+        <div class="lu-info-panel">
+          <div class="info-row"><span class="info-key">Pending Reward</span><span class="info-val green" id="lu-c-pending">--</span></div>
+          <div class="info-row"><span class="info-key">After 5% Fee</span><span class="info-val" id="lu-c-after-fee">--</span></div>
+          <div class="info-row"><span class="info-key">Max Claim (200%)</span><span class="info-val" id="lu-c-max">--</span></div>
+          <div class="info-row"><span class="info-key">Claimed So Far</span><span class="info-val gold" id="lu-c-claimed">--</span></div>
+          <div class="info-row"><span class="info-key">Remaining Cap</span><span class="info-val green" id="lu-c-remain">--</span></div>
+          <div class="info-row"><span class="info-key">Cycle Earned (All)</span><span class="info-val gold" id="lu-c-cycle">--</span></div>
+          <div class="info-row"><span class="info-key">Last Claim</span><span class="info-val" id="lu-c-last">--</span></div>
+          <div class="info-row"><span class="info-key">Next Available</span><span class="info-val gold" id="lu-c-next">--</span></div>
+          <div class="info-row"><span class="info-key">Can Claim Now?</span><span class="info-val" id="lu-c-canclaim">--</span></div>
+        </div>
+        <div class="lu-progress-wrap">
+          <div class="progress-header"><span class="info-key">Cycle Progress</span><span class="info-val green" id="lu-c-pct">0%</span></div>
+          <div class="progress-bar"><div class="progress-fill" id="lu-c-bar" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <!-- ═══ SUB-TAB: TEAM ═══ -->
+      <div class="lu-pane" data-lu-pane="team">
+        <!-- Referral link -->
+        <div class="lu-section-title"><div class="dot"></div>Referral Link (this user)</div>
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:18px;">
+          <div id="lu-ref-link" style="flex:1;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--green);word-break:break-all;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;">--</div>
+          <button class="btn btn-primary" onclick="copyLuRefLink()" style="padding:10px 18px;flex-shrink:0;">Copy</button>
+        </div>
+        <!-- 9-Level Referral Table -->
+        <div class="lu-section-title"><div class="dot"></div>9-Level Referral Breakdown</div>
+        <div class="lit-wrap" style="margin-bottom:18px;">
+          <table class="lit">
+            <thead><tr><th>Level</th><th>Rate</th><th>Team Count</th><th>Earned</th><th>Missed</th><th>Status</th></tr></thead>
+            <tbody id="lu-level-tbody"></tbody>
+          </table>
+        </div>
+        <!-- 50-Level Team Count -->
+        <div class="lu-section-title"><div class="dot"></div>Team Count — 50 Levels Deep</div>
+        <div class="lit-wrap" style="margin-bottom:18px;">
+          <table class="lit" id="lu-team-count-table">
+            <thead><tr><th>Level</th><th>Members</th><th>Level</th><th>Members</th><th>Level</th><th>Members</th><th>Level</th><th>Members</th><th>Level</th><th>Members</th></tr></thead>
+            <tbody id="lu-team-count-tbody"></tbody>
+          </table>
+        </div>
+        <!-- Leg Progress -->
+        <div class="lu-section-title"><div class="dot"></div>🦵 Leg Depth — Last User Referral Links (50-Level)</div>
+        <div id="lu-legs-container" style="margin-bottom:18px;"><div style="font-family:IBM Plex Mono,monospace;font-size:11px;color:var(--muted);text-align:center;padding:12px;">Loading legs...</div></div>
+        <!-- Leg-Claim Breakdown -->
+        <div class="lu-section-title"><div class="dot"></div>Leg-Claim Breakdown (9 Levels)</div>
+        <div class="lit-wrap">
+          <table class="lit">
+            <thead><tr><th>Level</th><th>Earned</th><th>Missed</th></tr></thead>
+            <tbody id="lu-legclaim-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══ SUB-TAB: MORE (events) ═══ -->
+      <div class="lu-pane" data-lu-pane="more">
+        <div class="lu-note">Recent income / missed / leg-claim events for this user (last ~24h from BSC logs).</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center;">
+          <button class="btn btn-ghost" id="lu-events-refresh" onclick="refreshLookupEvents()" style="padding:8px 16px;font-size:12px;">🔄 Refresh</button>
+          <a id="lu-bscscan-link" href="#" target="_blank" class="btn btn-secondary" style="padding:8px 16px;font-size:12px;text-decoration:none;">🔗 View on BscScan</a>
+          <span id="lu-events-status" style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-left:auto;">--</span>
+        </div>
+        <div class="lu-events-list" id="lu-events-list">
+          <div style="padding:20px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);">No events loaded yet</div>
+        </div>
+      </div>
+    </div>
+    <div id="lookup-error" style="display:none;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--red);text-align:center;padding:12px;"></div>
+  </div>
+  <!-- Pool Banner -->
+  <div class="pool-banner" id="pool-banner" style="display:none;">
+    <div class="pool-stat"><div class="pool-stat-label">Min Deposit ($30)</div><div class="pool-stat-value" id="g-min-dep">--</div></div>
+    <div class="pool-stat"><div class="pool-stat-label">&#x1F465; Total Users</div><div class="pool-stat-value" id="g-total-users" style="color:var(--green);">--</div></div>
+    <div class="pool-stat" style="border-color:rgba(34,197,94,.2);">
+      <div class="pool-stat-label">&#x1F4B9; KAVI Price (DEX)</div>
+      <div class="pool-stat-value" id="g-token-price" style="color:var(--green);">--</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px;" id="g-price-source">fetching...</div>
+    </div>
+    <div class="pool-stat" style="border-color:rgba(34,197,94,.15);">
+      <div class="pool-stat-label">&#x1F4C8; 24h Change</div>
+      <div class="pool-stat-value" id="g-price-change">--</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px;" id="g-price-vol">vol: --</div>
+    </div>
+  </div>
+  </div>
+  <!-- ═══ TAB: DASHBOARD (part 2 — stats grid) ═══ -->
+  <div class="tab-pane active" data-tab="home">
+  <!-- Stats Grid -->
+  <div class="stats-grid" id="stats-grid" style="display:none;">
+    <div class="stat-card"><div class="stat-label">My Deposit</div><div class="stat-value muted" id="s-my-dep">--</div><div class="stat-sub" id="s-dep-sub">current cycle</div><div class="stat-usdt" id="u-my-dep"></div></div>
+    <div class="stat-card"><div class="stat-label">Cycle Earned</div><div class="stat-value muted" id="s-cycle-earned">--</div><div class="stat-sub">Claim + Ref + LegClaim</div><div class="stat-usdt" id="u-cycle-earned"></div></div>
+    <div class="stat-card"><div class="stat-label">Wallet Balance</div><div class="stat-value muted" id="s-bal">--</div><div class="stat-sub" id="s-bal-sym">KAVI balance</div><div class="stat-usdt" id="u-bal"></div></div>
+    <div class="stat-card" style="border-color:rgba(52,211,153,.28);background:linear-gradient(135deg,rgba(52,211,153,.05),rgba(14,22,14,.94));">
+      <div class="stat-label">🎁 TRT Balance</div>
+      <div class="stat-value" style="color:#34d399;" id="s-trt-bal">--</div>
+      <div class="stat-sub">Trance Token · launch $10</div>
+      <div class="stat-usdt" id="u-trt-bal" style="color:rgba(52,211,153,.8);"></div>
+    </div>
+    <div class="stat-card"><div class="stat-label">⏱ 24h New Joining</div><div class="stat-value gold" id="s-new-joining">--</div><div class="stat-sub">new members today</div></div>
+    <div class="stat-card"><div class="stat-label">Referral Income</div><div class="stat-value" id="s-ref-income">--</div><div class="stat-sub">all-time earned</div><div class="stat-usdt" id="u-ref-income"></div></div>
+    <div class="stat-card"><div class="stat-label">💰 Referral (24h)</div><div class="stat-value green" id="s-ref-income-24h">--</div><div class="stat-sub">last 24 hours earned</div><div class="stat-usdt" id="u-ref-income-24h"></div></div>
+    <div class="stat-card"><div class="stat-label">🦵 Leg-Claim Income</div><div class="stat-value" style="color:#34d399;" id="s-legclaim-income">--</div><div class="stat-sub">50-level bonus</div><div class="stat-usdt" id="u-legclaim-income"></div></div>
+    <div class="stat-card"><div class="stat-label">Missed Income</div><div class="stat-value" style="color:var(--red);" id="s-missed-income">--</div><div class="stat-sub">passed you (unqualified)</div><div class="stat-usdt" id="u-missed-income"></div></div>
+    <div class="stat-card"><div class="stat-label">⚠️ Missed (24h)</div><div class="stat-value" style="color:var(--red);" id="s-missed-income-24h">--</div><div class="stat-sub">last 24 hours missed</div><div class="stat-usdt" id="u-missed-income-24h"></div></div>
+    <!-- Leg-Claim Missed cards — 0.5% slot bonus that passed user because unqualified -->
+    <div class="stat-card"><div class="stat-label">🦵 Leg-Claim Missed · Total</div><div class="stat-value" style="color:var(--red);" id="s-legclaim-missed-total">--</div><div class="stat-sub">0.5% slot passed (all-time)</div><div class="stat-usdt" id="u-legclaim-missed-total"></div></div>
+    <div class="stat-card"><div class="stat-label">⏱ Leg-Claim Missed · 24h</div><div class="stat-value" style="color:var(--red);" id="s-legclaim-missed-24h">--</div><div class="stat-sub">0.5% slot passed (last 24h)</div><div class="stat-usdt" id="u-legclaim-missed-24h"></div></div>
+    <div class="stat-card"><div class="stat-label">Claim Progress</div><div class="stat-value gold" id="s-roi-pct">--</div><div class="stat-sub">% of 200% cap</div><div class="stat-usdt" id="u-max-roi"></div></div>
+    <div class="stat-card"><div class="stat-label">&#x1F465; Total Team</div><div class="stat-value gold" id="s-team-total">--</div><div class="stat-sub">all 50 levels combined</div></div>
+    <div class="stat-card"><div class="stat-label">&#x1F91D; Direct (L1)</div><div class="stat-value" id="s-team-l1">--</div><div class="stat-sub">direct referrals</div></div>
+    <div class="stat-card"><div class="stat-label">⚡ Capped?</div><div class="stat-value" id="s-capped">--</div><div class="stat-sub">2× cycle cap status</div></div>
+    <div class="stat-card"><div class="stat-label">💰 Remaining Cap</div><div class="stat-value green" id="s-remaining">--</div><div class="stat-sub">left until 200%</div><div class="stat-usdt" id="u-remaining"></div></div>
+  </div>
+  <div class="tab-empty" data-empty-for="home"><strong>📊 Dashboard</strong>Connect your wallet to view pool stats and your personal overview.</div>
+  </div>
+  <!-- ═══ TAB: DEPOSIT ═══ -->
+  <div class="tab-pane" data-tab="deposit">
+  <div class="tab-empty" data-empty-for="deposit"><strong>💰 Deposit KAVI</strong>Connect your wallet to make a deposit.</div>
+  <!-- Deposit Panel (own tab) -->
+  <div class="panels" id="panels-deposit" style="display:none;grid-template-columns:1fr;">
+    <div class="panel">
+      <div class="panel-title"><div class="dot"></div>Deposit KAVI</div>
+      <div class="deposit-form">
+        <div class="note-box">Deposit splits: 50% Pool &middot; 45% 9-Level Referral &middot; 5% Fee<br/>Min deposit = $30 (DEX live price)</div>
+        <div class="field-wrap"><label>Amount (KAVI)</label><input id="dep-amount" type="number" placeholder="Enter KAVI amount (min $30)" min="0" step="any"/></div>
+        <div id="dep-min-warn" style="display:none;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--red);background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:8px 12px;"></div>
+        <div id="dep-min-info" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-top:-8px;">Current min: <span id="dep-min-kavi" style="color:var(--green);">loading...</span></div>
+        <div class="quick-amounts">
+          <button class="quick-btn" onclick="setAmt(1000)">1000</button>
+          <button class="quick-btn" onclick="setAmt(5000)">5000</button>
+          <button class="quick-btn" onclick="setAmt(10000)">10000</button>
+          <button class="quick-btn" onclick="setAmt(50000)">50000</button>
+          <button class="quick-btn" onclick="setAmtMax()">MAX</button>
+        </div>
+        <div class="field-wrap"><label>Referral Address (optional)</label><input id="dep-ref" type="text" placeholder="0x... or leave blank"/></div>
+        <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px;">
+          <div class="info-row"><span class="info-key">5% Fee</span><span class="info-val" id="dep-fee">0</span></div>
+          <div class="info-row"><span class="info-key">45% Referral</span><span class="info-val" id="dep-ref-dist">0</span></div>
+          <div class="info-row"><span class="info-key">50% Pool</span><span class="info-val green" id="dep-pool">0</span></div>
+        </div>
+        <div class="allowance-row" id="alw-row" style="display:none;">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);">Allowance</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--green);" id="alw-val">0</span>
+        </div>
+        <button class="btn btn-primary" id="dep-action-btn" onclick="approveAndDeposit()" style="width:100%;" disabled>Approve &amp; Deposit</button>
+        <div class="tx-link" id="dep-tx"></div>
+      </div>
+    </div>
+    <!-- TRT Bonus Rewards Card (RewardDistributor) -->
+    <div class="panel" style="border-color:rgba(52,211,153,.28);background:linear-gradient(135deg,rgba(52,211,153,.04),rgba(14,22,14,.94));">
+      <div class="panel-title"><div class="dot" style="background:#34d399;box-shadow:0 0 6px #34d399;"></div>🎁 TRT Bonus Rewards</div>
+      <div class="note-box" style="font-size:10px;">Every deposit you make in TRANCE above the minimum also earns you <b>TRT bonus tokens</b> on top. TRT is minted separately by the RewardDistributor contract — claim it here after depositing. Rates reduce as the network grows. <b style="color:#34d399;">After 500,000 users, TRANCE Token will launch on DEX at $10.</b></div>
+      <!-- Tier info -->
+      <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+        <div class="info-row"><span class="info-key">Current Tier</span><span class="info-val" id="trt-tier-label">--</span></div>
+        <div class="info-row"><span class="info-key">TRT / $30 Block</span><span class="info-val green" id="trt-per-unit">--</span></div>
+        <div class="info-row"><span class="info-key">Network Users</span><span class="info-val" id="trt-network-users">--</span></div>
+        <div class="info-row"><span class="info-key">Until Next Tier</span><span class="info-val" style="font-size:11px;color:var(--muted);" id="trt-next-tier">--</span></div>
+      </div>
+      <!-- Pending claim -->
+      <div style="background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.25);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+        <div class="info-row"><span class="info-key">My TRANCE Deposit</span><span class="info-val gold" id="trt-user-deposit">--</span></div>
+        <div class="info-row"><span class="info-key">Already Claimed</span><span class="info-val" id="trt-already">--</span></div>
+        <div class="info-row"><span class="info-key">Unclaimed</span><span class="info-val green" id="trt-unclaimed">--</span></div>
+        <div class="info-row"><span class="info-key">Multiplier</span><span class="info-val" id="trt-multiplier">--</span></div>
+        <div class="info-row"><span class="info-key" style="color:#34d399;">💎 Claimable TRT</span><span class="info-val" style="color:#34d399;font-size:16px;font-weight:800;" id="trt-claimable">0 TRT</span></div>
+      </div>
+      <button class="btn btn-primary" id="trt-claim-btn" onclick="claimTRT()" style="width:100%;background:linear-gradient(135deg,#34d399,#10b981);" disabled>Claim TRT Rewards</button>
+      <div class="tx-link" id="trt-tx"></div>
+    </div>
+    <!-- TRT Tier System Table -->
+    <div class="panel" style="border-color:rgba(52,211,153,.18);">
+      <div class="panel-title"><div class="dot" style="background:#34d399;box-shadow:0 0 6px #34d399;"></div>📊 TRT Tier System — Per $30 Deposit Block</div>
+      <div class="note-box" style="font-size:10px;">Reward decreases as the network grows. Each <b>$30 deposit unit</b> mints the tier's TRT amount. After <b>500,000 users</b>, TRT minting ends and the <b style="color:#34d399;">TRANCE Token launches on DEX at $10</b>.</div>
+      <div class="lit-wrap">
+        <table class="lit" id="trt-tier-table">
+          <thead>
+            <tr>
+              <th>Tier</th>
+              <th>User Range</th>
+              <th>TRT per $30</th>
+              <th>USD value @ launch ($10)</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="trt-tier-tbody">
+            <tr><td><span class="lvl-badge">T1</span></td><td>0 – 4,999</td><td><span style="color:#34d399;font-weight:700;">15 TRT</span></td><td>$150</td><td id="trt-tier-status-1">--</td></tr>
+            <tr><td><span class="lvl-badge">T2</span></td><td>5,000 – 9,999</td><td><span style="color:#34d399;font-weight:700;">8 TRT</span></td><td>$80</td><td id="trt-tier-status-2">--</td></tr>
+            <tr><td><span class="lvl-badge">T3</span></td><td>10,000 – 24,999</td><td><span style="color:#34d399;font-weight:700;">4 TRT</span></td><td>$40</td><td id="trt-tier-status-3">--</td></tr>
+            <tr><td><span class="lvl-badge">T4</span></td><td>25,000 – 49,999</td><td><span style="color:#34d399;font-weight:700;">2 TRT</span></td><td>$20</td><td id="trt-tier-status-4">--</td></tr>
+            <tr><td><span class="lvl-badge">T5</span></td><td>50,000 – 99,999</td><td><span style="color:#34d399;font-weight:700;">1 TRT</span></td><td>$10</td><td id="trt-tier-status-5">--</td></tr>
+            <tr><td><span class="lvl-badge">T6</span></td><td>100,000 – 199,999</td><td><span style="color:#34d399;font-weight:700;">0.5 TRT</span></td><td>$5</td><td id="trt-tier-status-6">--</td></tr>
+            <tr><td><span class="lvl-badge">T7</span></td><td>200,000 – 499,999</td><td><span style="color:#34d399;font-weight:700;">0.25 TRT</span></td><td>$2.50</td><td id="trt-tier-status-7">--</td></tr>
+            <tr><td><span class="lvl-badge" style="background:rgba(52,211,153,.18);color:#34d399;">DEX</span></td><td>500,000+</td><td><span style="color:var(--muted);">Minting ends</span></td><td><span style="color:#34d399;font-weight:700;">🚀 Launch @ $10</span></td><td id="trt-tier-status-8">--</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <!-- Claim Panel (own tab) -->
+  </div>
+  <!-- ═══ TAB: CLAIM ═══ -->
+  <div class="tab-pane" data-tab="claim">
+  <div class="tab-empty" data-empty-for="claim"><strong>💎 Claim Rewards</strong>Connect your wallet to view and claim your daily rewards.</div>
+  <div class="panels" id="panels-claim" style="display:none;grid-template-columns:1fr;">
+    <div class="panel">
+      <div class="panel-title"><div class="dot"></div>Claim Daily Rewards</div>
+      <div id="roi-done-msg" class="roi-done-banner" style="display:none;">2× Claim cap reached. Re-deposit to start a new cycle.</div>
+      <div class="claim-info">
+        <div class="info-row"><span class="info-key">Pending Reward</span><span class="info-val green" id="c-pending">--</span></div>
+        <div class="info-row"><span class="info-key">After 5% Fee</span><span class="info-val" id="c-after-fee">--</span></div>
+        <div class="info-row"><span class="info-key">Est. Daily Share</span><span class="info-val" id="c-daily-share">--</span></div>
+        <div class="info-row"><span class="info-key">Max Claim (200%)</span><span class="info-val" id="c-max-roi">--</span></div>
+        <div class="info-row"><span class="info-key">Remaining Cap</span><span class="info-val green" id="c-remaining">--</span></div>
+        <div class="info-row"><span class="info-key">Cycle Earned (All)</span><span class="info-val gold" id="c-cycle-earned">--</span></div>
+        <div class="info-row"><span class="info-key">Last Claim</span><span class="info-val" id="c-last">--</span></div>
+        <div class="info-row"><span class="info-key">Next Available</span><span class="info-val gold" id="c-next">--</span></div>
+      </div>
+      <div class="note-box" style="font-size:10px;">5% claim fee → 4.50% distributed as Leg-Claim bonus to qualifying uplines (3+ legs at 50-depth, L1-L9 open, not capped). Remaining 0.50% → feeWallet.</div>
+      <div class="progress-wrap">
+        <div class="progress-header"><span class="info-key">Cycle Progress (all income vs 200% cap)</span><span class="info-val green" id="c-roi-pct">0%</span></div>
+        <div class="progress-bar"><div class="progress-fill" id="c-roi-bar" style="width:0%"></div></div>
+      </div>
+      <hr/>
+      <div id="countdown"></div>
+      <button class="btn btn-secondary" id="claim-btn" onclick="claimRewards()" style="width:100%;margin-top:8px;" disabled>Claim Rewards</button>
+      <div class="tx-link" id="claim-tx"></div>
+    </div>
+  </div>
+  <!-- Referral System Card -->
+  </div>
+  <!-- ═══ TAB: TEAM PROGRESS ═══ -->
+  <div class="tab-pane" data-tab="team">
+  <div class="tab-empty" data-empty-for="team"><strong>👥 Team Progress</strong>Connect your wallet to view your referral tree and leg-claim progress.</div>
+  <div class="ref-card" id="ref-card" style="display:none;">
+    <div class="panel-title"><div class="dot"></div>Referral System &mdash; 9 Levels &middot; 50-Upline Compression</div>
+    <div class="note-box">Level 1-3 unlock by directQualified count. Level 4-9 unlock by grandChildQualified. Unqualified / capped nodes are skipped — income passes up 50 levels.</div>
+    <div class="income-summary">
+      <div class="iscard"><div class="iscard-label">Registered</div><div class="iscard-value green" id="ic-registered">--</div><div class="iscard-sub">account status</div></div>
+      <div class="iscard"><div class="iscard-label">Directs Qualified</div><div class="iscard-value gold" id="ic-directs">--</div><div class="iscard-sub" id="ic-req-sub">deposited ≥ $30</div></div>
+      <div class="iscard"><div class="iscard-label">GrandChild Qualified</div><div class="iscard-value gold" id="ic-grandchild">--</div><div class="iscard-sub">unlocks L4–L9</div></div>
+      <div class="iscard"><div class="iscard-label">Levels Active</div><div class="iscard-value green" id="ic-active">--</div><div class="iscard-sub">out of 9</div></div>
+      <div class="iscard"><div class="iscard-label">Referral Earned</div><div class="iscard-value green" id="ic-ref-earned">--</div><div class="iscard-sub">all-time referral</div></div>
+      <div class="iscard"><div class="iscard-label">Leg-Claim Earned</div><div class="iscard-value" style="color:#34d399;" id="ic-legclaim-earned">--</div><div class="iscard-sub">50-level leg bonus</div></div>
+      <div class="iscard"><div class="iscard-label">Missed Income</div><div class="iscard-value" style="color:var(--red);" id="ic-missed">--</div><div class="iscard-sub">passed you</div></div>
+      <div class="iscard"><div class="iscard-label">Total Team (L1)</div><div class="iscard-value gold" id="ic-team-l1">--</div><div class="iscard-sub">direct members</div></div>
+      <div class="iscard"><div class="iscard-label">My Referrer</div><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);word-break:break-all;margin-top:6px;" id="ic-referrer">--</div><div class="iscard-sub">upline address</div></div>
+    </div>
+    <!-- 9-Level Referral Table -->
+    <div class="lit-wrap">
+      <table class="lit">
+        <thead><tr><th>Level</th><th>Rate</th><th>% of Dep</th><th>Directs Needed</th><th>Team Count</th><th>Earned</th><th>Missed</th><th>Status</th></tr></thead>
+        <tbody id="level-tbody"></tbody>
+      </table>
+    </div>
+    <!-- 50-Level Team Count Table -->
+    <div style="margin-top:20px;">
+      <div class="panel-title" style="margin-bottom:12px;font-size:13px;"><div class="dot"></div>Team Count — 50 Levels Deep</div>
+      <div class="lit-wrap">
+        <table class="lit" id="team-count-table">
+          <thead><tr><th>Level</th><th>Members</th><th>Level</th><th>Members</th><th>Level</th><th>Members</th><th>Level</th><th>Members</th><th>Level</th><th>Members</th></tr></thead>
+          <tbody id="team-count-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <hr/>
+    <div class="ref-bottom">
+      <div>
+        <div class="panel-title" style="margin-bottom:10px;font-size:13px;"><div class="dot"></div>Your Referral Link</div>
+        <div class="ref-link-row">
+          <div class="ref-link-box" id="ref-link-display">Connect wallet to generate link</div>
+          <button class="btn btn-ghost" onclick="copyRefLink()">Copy</button>
+        </div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-top:8px;">Share this link — your referral earns L1 income on their deposit</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="ref-stat-box"><div class="ref-stat-label">Min Deposit ($30 DEX)</div><div style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:var(--gold);" id="r-min-dep">--</div></div>
+        <div class="ref-stat-box"><div class="ref-stat-label">Leg-Claim Bonus</div><div style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:#34d399;">0.50% × 9 slots</div></div>
+      </div>
+    </div>
+  </div>
+  <!-- Leg-Claim System Card -->
+  <div class="ref-card" id="leg-card" style="display:none;">
+    <div class="panel-title"><div class="dot"></div>🦵 Leg-Claim Bonus &mdash; 3 Qualifying Legs Required &middot; 0.50% × 9 Slots from 5% Fee</div>
+    <div class="note-box">When you claim daily, the 5% fee is split: 0.50% per slot to 9 qualifying uplines (4.50% total), remaining 0.50% to feeWallet. Eligibility: you need 3+ legs each reaching 50-level depth (legDepthCount ≥ 3), plus L1-L9 unlock + not capped. Unqualified nodes are skipped (compression).</div>
+    <div class="income-summary" style="margin-bottom:16px;">
+      <div class="iscard"><div class="iscard-label">Leg-Claim Earned</div><div class="iscard-value" style="color:#34d399;" id="lc-earned">--</div><div class="iscard-sub">all-time net earned</div></div>
+      <div class="iscard"><div class="iscard-label">Cycle Leg-Claim</div><div class="iscard-value gold" id="lc-cycle">--</div><div class="iscard-sub">this cycle only</div></div>
+      <div class="iscard"><div class="iscard-label">Qualifying Legs</div><div class="iscard-value green" id="lc-qual-count">--</div><div class="iscard-sub">need 3 to unlock</div></div>
+      <div class="iscard"><div class="iscard-label">Leg-Claim Active?</div><div class="iscard-value" id="lc-active-status">--</div><div class="iscard-sub">legDepthCount ≥ 3</div></div>
+    </div>
+    <!-- Leg Progress -->
+    <div class="panel-title" style="font-size:13px;margin-bottom:10px;"><div class="dot"></div>Your Direct Legs — Last Joining Referral Links</div>
+    <div id="leg-progress-container"><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);text-align:center;padding:20px;">Loading leg data...</div></div>
+    <!-- Leg-Claim Breakdown Table -->
+    <div style="margin-top:20px;">
+      <div class="panel-title" style="font-size:13px;margin-bottom:10px;"><div class="dot"></div>Leg-Claim Breakdown (9 Levels)</div>
+      <div class="lit-wrap">
+        <table class="lit">
+          <thead><tr><th>Level</th><th>Earned</th><th>Missed</th></tr></thead>
+          <tbody id="legclaim-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <!-- Event Feed -->
+  </div>
+  <!-- ═══ TAB: MORE (part 2 — events) ═══ -->
+  <div class="tab-pane" data-tab="more">
+  <div class="tab-empty" data-empty-for="more-events"><strong>📡 Live Events</strong>Connect your wallet to see your live income/missed/leg-claim events.</div>
+  <div class="event-feed-card" id="event-feed-card" style="display:none;">
+    <div class="panel-title"><div class="dot"></div>My Events &mdash; Income &middot; Missed &middot; Leg-Claim</div>
+    <div class="feed-controls">
+      <button class="feed-filter active-all" id="ff-all" onclick="setFeedFilter('all')">All</button>
+      <button class="feed-filter" id="ff-income" onclick="setFeedFilter('income')">Income</button>
+      <button class="feed-filter" id="ff-missed" onclick="setFeedFilter('missed')">Missed</button>
+      <button class="feed-filter" id="ff-legclaim" onclick="setFeedFilter('legclaim')">Leg-Claim</button>
+      <button class="feed-load-btn" id="load-more-btn" onclick="loadMoreEvents()">Load more</button>
+      <span id="feed-status"><span class="feed-dot loading" id="feed-dot"></span><span id="feed-txt">Connecting...</span></span>
+    </div>
+    <div id="event-list"><div class="ev-empty">Connecting to contract events...</div></div>
+  </div>
+  </div>
+  <!-- ═══ END TAB PANES ═══ -->
+  <footer>
+    Kavi Smart Contract: <br> <span>0x69a8d3ebe5532dcdcd719a16346baf89c7a5d02f</span> <br/> Trance Contract: <br> <span id="footer-addr" style="font-size:10px;word-break:break-all;"></span><br/>
+    BSC (BNB Chain) &middot; Trustless &middot; Immutable &middot; Always verify contract before investing
+  </footer>
+</div>
+<!-- ═══ BOTTOM NAVIGATION ═══ -->
+<nav class="bottom-nav" role="navigation" aria-label="Section tabs">
+  <div class="bn-grid">
+    <button class="bn-btn active" data-target="home" onclick="showTab('home')"><span class="bn-icon">🏠</span><span class="bn-label">Home</span></button>
+    <button class="bn-btn" data-target="deposit" onclick="showTab('deposit')"><span class="bn-icon">💰</span><span class="bn-label">Deposit</span></button>
+    <button class="bn-btn" data-target="claim" onclick="showTab('claim')"><span class="bn-icon">💎</span><span class="bn-label">Claim</span></button>
+    <button class="bn-btn" data-target="team" onclick="showTab('team')"><span class="bn-icon">👥</span><span class="bn-label">Team</span></button>
+    <button class="bn-btn" data-target="more" onclick="showTab('more')"><span class="bn-icon">⋯</span><span class="bn-label">More</span></button>
+  </div>
+</nav>
+<div id="toast"></div>
+<div id="success-banner"><div class="sb-box"><div class="sb-icon" id="sb-icon">✅</div><div class="sb-title" id="sb-title">Success</div><div class="sb-msg" id="sb-msg"></div><div class="sb-tx" id="sb-tx"></div><button class="sb-close" onclick="closeBanner()">OK</button></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+<script>
+"use strict";
+// ═══════════════════════════════════════════════════════════════════════════
+//  CONTRACT CONFIG — TRANCE v1 + TRANCEReader deployed on BSC
+// ═══════════════════════════════════════════════════════════════════════════
+const CONTRACT_ADDRESS="0x0C0df298f511DB46B1f0A796FC839B4A17d07a36";
+const READER_ADDRESS="0xE52be2D97077CD5e4d6c156a15b7C0d7835Ac419";
+// RewardDistributor (TRT bonus) — user deposits normally to TRANCE first,
+// then calls claimRewards() here to mint TRT based on unclaimed deposit delta.
+const REWARD_DISTRIBUTOR_ADDRESS="0x18d6a7f8D792da4d687E5C214a87C2b329709c40";
+// TRANCE Token (TRT) — bonus reward token minted by RewardDistributor.
+// Launch price is fixed (no DEX yet); displayed as $10 per TRT until listing.
+const TRANCE_TOKEN_ADDRESS="0xC7e70162Aa20E1f6B23f1c51Ff840d70c4DF530B";
+const TRANCE_LAUNCH_PRICE=10;
+const REWARD_DISTRIBUTOR_ABI=[
+  "function claimRewards() external",
+  "function lastClaimedDeposit(address user) external view returns (uint256)",
+  "function pendingRewards(address user) external view returns (uint256 claimableAmount, uint256 multiplier, uint256 perUnit, bool canClaim)",
+  "function currentTierInfo() external view returns (uint256 perUnit, uint256 totalUsers_, bool isActive)",
+  "function previewReward(uint256 amount) external view returns (uint256 multiplier, uint256 perUnit, uint256 rewardUser, uint256 rewardAdmin, bool tierActive)",
+  "function getMinKavi() external view returns (uint256)",
+  "function trance() external view returns (address)",
+  "function kaviToken() external view returns (address)",
+  "function reward1() external view returns (address)",
+  "function admin() external view returns (address)",
+  "event RewardClaimed(address indexed user, uint256 depositAmount, uint256 multiplier, uint256 perUnitReward1, uint256 reward1MintedToUser, uint256 reward1MintedToAdmin, uint256 tranceTotalUsers)",
+  "event Reward1Ended(address indexed user, uint256 tranceTotalUsers)"
+];
+const REQUIRED_CHAIN=56;
+const EXPLORER="https://bscscan.com";
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  ABI — TRANCE main (write + basic reads) + TRANCEReader (all view helpers)
+// ═══════════════════════════════════════════════════════════════════════════
+const TRANCE_ABI=[
+  // Immutables
+  "function token() external view returns(address)",
+  "function feeWallet() external view returns(address)",
+  "function defaultReferrer() external view returns(address)",
+  "function kaviUsdtPair() external view returns(address)",
+  "function kaviIsToken0() external view returns(bool)",
+  // Constants
+  "function MIN_JOIN_USDT() external view returns(uint256)",
+  "function FALLBACK_MIN() external view returns(uint256)",
+  "function MAX_ROI() external view returns(uint256)",
+  "function DAILY_PERCENT() external view returns(uint256)",
+  "function CLAIM_INTERVAL() external view returns(uint256)",
+  "function FEE_PERCENT() external view returns(uint256)",
+  "function LEG_CLAIM_BPS() external view returns(uint256)",
+  "function LEG_LEVELS() external view returns(uint256)",
+  // Global State
+  "function totalDeposited() external view returns(uint256)",
+  "function activeDeposited() external view returns(uint256)",
+  "function contractPool() external view returns(uint256)",
+  "function totalUsers() external view returns(uint256)",
+  // Mappings
+  "function users(address) external view returns(bool registered,uint256 deposit,uint256 claimed,uint256 lastClaim,address referrer,uint256 directQualified,bool countedDirect,bool capped)",
+  "function refPercent(uint256) external view returns(uint256)",
+  "function totalReferralIncome(address) external view returns(uint256)",
+  "function totalLegClaimIncome(address) external view returns(uint256)",
+  "function totalMissedIncome(address) external view returns(uint256)",
+  "function cycleReferralIncome(address) external view returns(uint256)",
+  "function cycleLegClaimIncome(address) external view returns(uint256)",
+  "function levelIncome(address,uint256) external view returns(uint256)",
+  "function levelMissedIncome(address,uint256) external view returns(uint256)",
+  "function legClaimLevelIncome(address,uint256) external view returns(uint256)",
+  "function legClaimLevelMissed(address,uint256) external view returns(uint256)",
+  "function levelTeamCount(address,uint256) external view returns(uint256)",
+  "function grandChildQualified(address) external view returns(uint256)",
+  "function legDepthQualified(address,address) external view returns(bool)",
+  "function legBottomUser(address,address) external view returns(address)",
+  "function legCurrentDepth(address,address) external view returns(uint256)",
+  "function legDepthCount(address) external view returns(uint256)",
+  // On-chain helpers
+  "function getMinKaviForJoin() external view returns(uint256)",
+  "function pendingReward(address) external view returns(uint256)",
+  "function getDirectLegs(address) external view returns(address[])",
+  // Write functions
+  "function deposit(uint256 amount,address ref) external",
+  "function claim() external",
+  // Events
+  "event LevelIncome(address indexed from,address indexed to,uint256 level,uint256 amount)",
+  "event MissedIncome(address indexed from,address indexed to,uint256 level,uint256 amount)",
+  "event Register(address indexed user,address indexed referrer)",
+  "event DepositEvent(address indexed user,uint256 amount,bool cycleReset)",
+  "event CycleReset(address indexed user,uint256 newDeposit)",
+  "event ClaimEvent(address indexed user,uint256 grossReward,uint256 fee)",
+  "event LegClaimBonus(address indexed claimer,address indexed to,uint256 level,uint256 netAmount)",
+  "event LegClaimMissed(address indexed claimer,address indexed to,uint256 level,uint256 amount)",
+  "event LegDepthReached(address indexed bottomUser,address indexed ancestor,address indexed directChild)"
+];
+// TRANCEReader — all view helper functions
+const READER_ABI=[
+  "function trance() external view returns(address)",
+  "function getUserDashboard(address) external view returns(tuple(bool registered,address referrer,uint256 deposit,uint256 directQualified,uint256 directCount,uint256 maxReturn,uint256 cycleEarned,uint256 remainingCap,uint256 claimed,bool capped,uint256 totalReferralIncome,uint256 totalLegClaimIncome,uint256 totalMissedIncome,uint256 cycleReferralIncome,uint256 cycleLegClaimIncome,bool canClaim,uint256 nextClaimTime,uint256 pendingRewardAmt,uint256 minJoinKavi))",
+  "function getPoolStats() external view returns(tuple(uint256 contractPool,uint256 totalDeposited,uint256 activeDeposited,uint256 totalUsers,uint256 dailyPercent,uint256 maxRoi,uint256 feePercent,uint256 legClaimBps,uint256 legLevels,uint256 minJoinUsdt,uint256 minJoinKavi))",
+  "function getLevelBreakdown(address) external view returns(tuple(uint256[9] incomes,uint256[9] missed,uint256[9] percents))",
+  "function getLegClaimBreakdown(address) external view returns(tuple(uint256[] incomes,uint256[] missed))",
+  "function getDirectDetails(address) external view returns(tuple(address addr,uint256 deposit,bool qualified,uint256 directQualified)[])",
+  "function getQualifiedLegs(address) external view returns(address[],address[])",
+  "function getLegProgress(address) external view returns(tuple(address legRoot,uint256 currentDepth,bool qualified,address chainTip,uint256 teamSize)[])",
+  "function getGrandChildStatus(address) external view returns(tuple(uint256 grandChildQualifiedCount,uint256 neededForL4,uint256 neededForL5,uint256 neededForL6,uint256 neededForL7,uint256 neededForL8,uint256 neededForL9))",
+  "function getFullUserData(address) external view returns(tuple(tuple(bool registered,address referrer,uint256 deposit,uint256 directQualified,uint256 directCount,uint256 maxReturn,uint256 cycleEarned,uint256 remainingCap,uint256 claimed,bool capped,uint256 totalReferralIncome,uint256 totalLegClaimIncome,uint256 totalMissedIncome,uint256 cycleReferralIncome,uint256 cycleLegClaimIncome,bool canClaim,uint256 nextClaimTime,uint256 pendingRewardAmt,uint256 minJoinKavi) dashboard,tuple(uint256[9] incomes,uint256[9] missed,uint256[9] percents) levels,bool[9] levelStatus,tuple(uint256 grandChildQualifiedCount,uint256 neededForL4,uint256 neededForL5,uint256 neededForL6,uint256 neededForL7,uint256 neededForL8,uint256 neededForL9) grandChild))"
+];
+const ERC20_ABI=[
+  "function approve(address spender,uint256 amount) external returns(bool)",
+  "function allowance(address owner,address spender) external view returns(uint256)",
+  "function balanceOf(address account) external view returns(uint256)",
+  "function symbol() external view returns(string)",
+  "function decimals() external view returns(uint8)",
+  "function name() external view returns(string)"
+];
+const LEVELS=[{n:1,pct:15,req:1},{n:2,pct:10,req:2},{n:3,pct:6,req:3},{n:4,pct:4,req:4},{n:5,pct:3,req:5},{n:6,pct:2,req:6},{n:7,pct:2,req:7},{n:8,pct:2,req:8},{n:9,pct:1,req:9}];
+const LBC=["lb-1","lb-2","lb-3","lb-4","lb-5","lb-6","lb-7","lb-8","lb-9"];
+
+let trance=null,reader=null,tok=null,rewardDist=null,trtToken=null,tokSym="KAVI",tokDec=18,tokName="";
+let cdTimer=null,rfTimer=null,priceTimer=null,lastAllowance=0n;
+let currentTokenPrice=0;
+let minKaviDeposit=0n; // live $30 equivalent in KAVI from DEX price
+let evFilter="all",evItems=[],fromBlock=0n;
+const MAX_FEED=100;
+const TOPIC_LEVEL_INCOME=ethers.id("LevelIncome(address,address,uint256,uint256)");
+const TOPIC_MISSED_INCOME=ethers.id("MissedIncome(address,address,uint256,uint256)");
+const TOPIC_LEG_CLAIM_BONUS=ethers.id("LegClaimBonus(address,address,uint256,uint256)");
+const TOPIC_LEG_CLAIM_MISSED=ethers.id("LegClaimMissed(address,address,uint256,uint256)");
+
+// Build initial level table rows
+(function(){
+  const tb=document.getElementById("level-tbody");
+  LEVELS.forEach(lv=>{
+    const tr=document.createElement("tr");tr.id="lr-"+lv.n;
+    tr.innerHTML='<td><span class="lvl-badge '+LBC[lv.n-1]+'">L'+lv.n+'</span></td><td><span class="rate-pill">'+lv.pct+'/45</span></td><td style="color:var(--muted);">'+(lv.pct/45*45).toFixed(2)+'%</td><td style="color:var(--muted);">'+lv.req+(lv.n<=3?' direct'+(lv.req>1?"s":""):' GC')+'</td><td id="ltc-'+lv.n+'" style="color:var(--muted);">--</td><td id="le-'+lv.n+'" style="color:var(--muted);">--</td><td id="lm-'+lv.n+'" style="color:var(--muted);">--</td><td id="ls-'+lv.n+'"><span class="s-locked">Locked</span></td>';
+    tb.appendChild(tr);
+  });
+  // Build 50-level team count table
+  const tcb=document.getElementById("team-count-tbody");
+  for(let row=0;row<10;row++){
+    const tr=document.createElement("tr");
+    for(let col=0;col<5;col++){
+      const lvl=row+col*10+1;
+      tr.innerHTML+='<td style="color:var(--muted);font-size:11px;">L'+lvl+'</td><td id="tc-'+lvl+'" style="color:var(--muted);">--</td>';
+    }
+    tcb.appendChild(tr);
+  }
+  document.getElementById("footer-addr").textContent=CONTRACT_ADDRESS;
+})();
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  WALLET MANAGER (same as original — multi-wallet support)
+// ═══════════════════════════════════════════════════════════════════════════
+const WM=(function(){
+  const WC_PROJECT_ID="258b2df1cb2a8e91335daec28b089b16";
+  const WC_SDK_URL="https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2.13.0/dist/index.umd.js";
+  const CHAINS={56:{name:"BNB Chain",rpc:"https://bsc-dataseed.binance.org/",explorer:"https://bscscan.com",symbol:"BNB",decimals:18},1:{name:"Ethereum",rpc:"https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",explorer:"https://etherscan.io",symbol:"ETH",decimals:18},137:{name:"Polygon",rpc:"https://polygon-rpc.com/",explorer:"https://polygonscan.com",symbol:"MATIC",decimals:18}};
+  const INSTALL={mm:"https://metamask.io/download/",trust:"https://trustwallet.com/browser-extension",tp:"https://www.tokenpocket.pro/",cb:"https://www.coinbase.com/wallet",okx:"https://www.okx.com/web3",rabby:"https://rabby.io/"};
+  const DEEP_LINKS=[{name:"MetaMask",icon:"MM",url:u=>"https://metamask.app.link/dapp/"+location.hostname},{name:"TokenPocket",icon:"TP",url:u=>"tpoutside://pull.activity?param="+encodeURIComponent(JSON.stringify({action:"dapp",value:location.href}))},{name:"Trust",icon:"TW",url:u=>"https://link.trustwallet.com/open_url?coin_id=60&url="+encodeURIComponent(location.href)},{name:"Rainbow",icon:"RB",url:u=>"https://rnbwapp.com/wc?uri="+encodeURIComponent(u)},{name:"Zerion",icon:"ZR",url:u=>"https://app.zerion.io/wc?uri="+encodeURIComponent(u)},{name:"imToken",icon:"iT",url:u=>"imtokenv2://wc?uri="+encodeURIComponent(u)},{name:"Argent",icon:"AG",url:u=>"https://argent.link/app/wc?uri="+encodeURIComponent(u)},{name:"Exodus",icon:"EX",url:u=>"https://exodus.com/m/wc?uri="+encodeURIComponent(u)}];
+  let provider=null,signer=null,wallet=null,chainId=null,rawProv=null,wcProv=null,wcUri="",wcOpen=false,wcInited=false,isTP=false,pollTimer=null;
+  const L={};
+  function emit(e,d){(L[e]||[]).forEach(f=>f(d));}
+  function on(e,f){if(!L[e])L[e]=[];L[e].push(f);}
+  const eip={};
+  window.addEventListener("eip6963:announceProvider",e=>{eip[e.detail.info.rdns]=e.detail.provider;});
+  window.dispatchEvent(new Event("eip6963:requestProvider"));
+  function find(type){
+    const rdns={mm:["io.metamask","io.metamask.flask"],trust:["com.trustwallet.app"],tp:["pro.tokenpocket","com.tokenpocket"],cb:["com.coinbase.wallet"],okx:["com.okex.wallet","com.okx.wallet"],rabby:["io.rabby"]};
+    for(const r of(rdns[type]||[]))if(eip[r])return eip[r];
+    const arr=window.ethereum?.providers;
+    if(Array.isArray(arr)){switch(type){case"mm":return arr.find(p=>p.isMetaMask&&!p.isTokenPocket&&!p.isBraveWallet)||null;case"trust":return arr.find(p=>p.isTrust||p.isTrustWallet)||null;case"tp":return arr.find(p=>p.isTokenPocket)||null;case"cb":return arr.find(p=>p.isCoinbaseWallet)||null;case"okx":return arr.find(p=>p.isOKExWallet||p.isOkxWallet)||null;case"rabby":return arr.find(p=>p.isRabby)||null;case"any":return arr[0]||window.ethereum;}}
+    if(type==="okx"&&window.okxwallet)return window.okxwallet;
+    if(type==="trust"&&window.trustwallet)return window.trustwallet;
+    if(type==="tp"&&window.tokenpocket?.ethereum)return window.tokenpocket.ethereum;
+    const e=window.ethereum;if(!e)return null;
+    switch(type){case"mm":return(e.isMetaMask&&!e.isTokenPocket&&!e.isBraveWallet)?e:null;case"trust":return(e.isTrust||e.isTrustWallet)?e:null;case"tp":return e.isTokenPocket?e:null;case"cb":return(e.isCoinbaseWallet||e.isCoinbaseBrowser)?e:null;case"okx":return(e.isOKExWallet||e.isOkxWallet)?e:null;case"rabby":return e.isRabby?e:null;case"any":return e;}
+    return null;
+  }
+  function detect(){
+    ["mm","trust","tp","cb","okx","rabby"].forEach(t=>{const el=document.getElementById("bd-"+t);if(!el)return;const ok=!!find(t);el.textContent=ok?"Detected":"Install";el.className="wm-badge "+(ok?"ok":"no");});
+    if(window.ethereum&&!["mm","trust","tp","cb","okx","rabby"].some(t=>!!find(t)))document.getElementById("wm-any").style.display="flex";
+    document.getElementById("wm-net-row").style.display=wallet?"flex":"none";
+  }
+  async function connectInj(type){
+    let raw=type==="any"?(window.ethereum||null):find(type);
+    if(!raw&&type==="trust"&&window.trustwallet)raw=window.trustwallet;
+    if(!raw&&type==="okx"&&window.okxwallet)raw=window.okxwallet;
+    if(!raw&&type==="tp"&&window.tokenpocket?.ethereum)raw=window.tokenpocket.ethereum;
+    if(!raw&&type==="any"&&window.ethereum)raw=window.ethereum;
+    if(!raw){if(INSTALL[type])window.open(INSTALL[type],"_blank");else emit("error","Wallet not found.");return;}
+    const row=document.getElementById("wm-"+type),bd=document.getElementById("bd-"+type);
+    const oC=bd?.className,oT=bd?.textContent;
+    if(row)row.classList.add("busy");if(bd){bd.className="wm-badge ok";bd.textContent="...";}
+    try{
+      await raw.request({method:"eth_requestAccounts"});
+      const ep=new ethers.BrowserProvider(raw),sg=await ep.getSigner(),addr=await sg.getAddress(),net=await ep.getNetwork();
+      provider=ep;signer=sg;wallet=addr;chainId=Number(net.chainId);rawProv=raw;
+      isTP=type==="tp"||/tokenpocket/i.test(navigator.userAgent);
+      const names={mm:"MetaMask",trust:"Trust Wallet",tp:"TokenPocket",cb:"Coinbase Wallet",okx:"OKX Wallet",rabby:"Rabby",any:"Browser Wallet"};
+      closeModal();
+      emit("connected",{provider,signer,wallet,chainId,via:names[type]||"Browser Wallet",chainName:CHAINS[chainId]?.name||"Chain "+chainId});
+      raw.on?.("accountsChanged",a=>{if(!a.length){disconnect();return;}wallet=a[0];emit("accountChanged",a[0]);});
+      raw.on?.("chainChanged",h=>{const id=parseInt(h,16);chainId=id;provider=new ethers.BrowserProvider(raw);provider.getSigner().then(s=>signer=s);emit("chainChanged",id);});
+      if(isTP)startPoll(raw);
+    }catch(err){
+      if(err.code===4001||err.message?.includes("rejected"))emit("error","Rejected by user.");
+      else emit("error",err.message||String(err));
+    }finally{if(row)row.classList.remove("busy");if(bd&&oC){bd.className=oC;bd.textContent=oT;}}
+  }
+  function startPoll(raw){
+    clearInterval(pollTimer);let last=chainId;
+    pollTimer=setInterval(async()=>{if(!wallet){clearInterval(pollTimer);return;}try{const cur=parseInt(await raw.request({method:"eth_chainId"}),16);if(cur!==last){last=cur;chainId=cur;provider=new ethers.BrowserProvider(raw);signer=await provider.getSigner();emit("chainChanged",cur);}}catch(_){}},2000);
+  }
+  async function switchNet(tid){
+    const hex="0x"+tid.toString(16),info=CHAINS[tid];
+    if(!rawProv){emit("error","No wallet.");return false;}
+    if(chainId===tid)return true;
+    try{await rawProv.request({method:"wallet_switchEthereumChain",params:[{chainId:hex}]});return true;}
+    catch(e){
+      if((e.code===4902||e.code===-32603)&&info){try{await rawProv.request({method:"wallet_addEthereumChain",params:[{chainId:hex,chainName:info.name,nativeCurrency:{name:info.symbol,symbol:info.symbol,decimals:info.decimals},rpcUrls:[info.rpc],blockExplorerUrls:[info.explorer]}]});return true;}catch(_){}}
+      return false;
+    }
+  }
+  function openModal(){detect();document.getElementById("wm-overlay").classList.add("open");wcOpen=true;}
+  function closeModal(){document.getElementById("wm-overlay").classList.remove("open");wcOpen=false;}
+  function disconnect(){
+    wallet=null;signer=null;provider=null;rawProv=null;chainId=null;
+    clearInterval(pollTimer);
+    emit("disconnected");
+  }
+  function wireButtons(){
+    const $=id=>document.getElementById(id);
+    $("wm-close").onclick=closeModal;
+    $("wm-overlay").onclick=e=>{if(e.target.id==="wm-overlay")closeModal();};
+    $("wm-mm").onclick=()=>connectInj("mm");$("wm-trust").onclick=()=>connectInj("trust");$("wm-tp").onclick=()=>connectInj("tp");
+    $("wm-cb").onclick=()=>connectInj("cb");$("wm-okx").onclick=()=>connectInj("okx");$("wm-rabby").onclick=()=>connectInj("rabby");
+    $("wm-any").onclick=()=>connectInj("any");
+    $("wm-net-row").onclick=()=>{const s=$("wm-net-sel"),b=$("wm-net-badge"),o=s.classList.toggle("open");b.textContent=o?"Close":"Change";document.querySelectorAll(".wm-net-btn").forEach(x=>x.classList.toggle("active",Number(x.id.replace("wm-nb-",""))===chainId));};
+    $("wm-wc").onclick=()=>{};// WC QR — can be extended
+    $("wm-copy-btn").onclick=()=>{};
+    $("wm-dl-toggle").onclick=()=>{const p=$("wm-dl-panel");p.style.display=p.style.display==="none"?"block":"none";};
+    $("wm-retry-btn").onclick=()=>{};$("wm-retry-err").onclick=()=>{};
+    $("wm-uri-box").onclick=()=>$("wm-copy-btn").click();
+  }
+  function getMobileProvider(){
+    const e=window.ethereum;
+    if(window.trustwallet)return{raw:window.trustwallet,type:"trust"};
+    if(e?.isTrust||e?.isTrustWallet)return{raw:e,type:"trust"};
+    if(e?.isTokenPocket||window.tokenpocket?.ethereum)return{raw:e||window.tokenpocket.ethereum,type:"tp"};
+    if(window.okxwallet||e?.isOKExWallet||e?.isOkxWallet)return{raw:window.okxwallet||e,type:"okx"};
+    if(e?.isCoinbaseWallet||e?.isCoinbaseBrowser)return{raw:e,type:"cb"};
+    if(e?.isMetaMask)return{raw:e,type:"mm"};
+    if(e)return{raw:e,type:"any"};
+    return null;
+  }
+  return{openModal,closeModal,disconnect,switchNet,on,wireButtons,getMobileProvider,connectInj,_chains:CHAINS,
+    get provider(){return provider;},get signer(){return signer;},get wallet(){return wallet;},
+    get chainId(){return chainId;},get isConnected(){return!!wallet;},get isTokenPocket(){return isTP;}};
+})();
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  WALLET EVENTS
+// ═══════════════════════════════════════════════════════════════════════════
+WM.on("connected",async({wallet,chainName,chainId,via})=>{
+  const btn=document.getElementById("connect-btn");
+  if(btn){btn.textContent="Connect Wallet";btn.disabled=false;}
+  document.getElementById("chain-name").textContent=chainName;
+  document.getElementById("wallet-addr").textContent=wallet.slice(0,6)+"..."+wallet.slice(-4);
+  document.getElementById("wallet-pill").style.display="flex";
+  document.getElementById("connect-btn").style.display="none";
+  checkNetwork(chainId,chainName);updateRefLink();
+  showToast("Connected via "+via+" OK","success");
+  await loadContract();
+});
+WM.on("disconnected",()=>{
+  document.getElementById("wallet-pill").style.display="none";
+  document.getElementById("connect-btn").style.display="block";
+  document.getElementById("chain-name").textContent="-- Network --";
+  document.getElementById("net-warn").style.display="none";
+  ["pool-banner","stats-grid","panels-deposit","panels-claim","ref-card","leg-card","event-feed-card"].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display="none";});
+  // Restore lookup card on disconnect (it's a pre-connect feature)
+  {const lc=document.getElementById("lookup-card");if(lc)lc.style.display="block";}
+  // Hide "My ID" badge
+  {const mb=document.getElementById("my-id-badge");if(mb)mb.style.display="none";}
+  trance=reader=tok=null;clearInterval(rfTimer);clearInterval(cdTimer);clearInterval(priceTimer);stopEventListeners();
+  showToast("Disconnected","info");
+});
+WM.on("accountChanged",()=>{showToast("Account changed, reloading...","info");setTimeout(()=>location.reload(),800);});
+WM.on("chainChanged",id=>{
+  const name=WM._chains[id]?.name||"Chain "+id;
+  document.getElementById("chain-name").textContent=name;checkNetwork(id,name);
+  if(WM.isTokenPocket){showToast("Network: "+name,"success");if(trance)refreshAll().catch(()=>{});}
+  else{showToast("Network changed, reloading...","info");setTimeout(()=>location.reload(),800);}
+});
+WM.on("error",m=>showToast(""+m,"error"));
+WM.on("copied",m=>showToast(m,"success"));
+
+function checkNetwork(id,name){
+  const nw=document.getElementById("net-warn");
+  if(Number(id)!==REQUIRED_CHAIN){nw.style.display="block";nw.innerHTML='Wrong network: <b>'+name+'</b>. TRANCE runs on <b>BNB Chain (BSC)</b>. <button onclick="WM.switchNet(56)" style="margin-left:10px;font-family:Syne,sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;border:none;cursor:pointer;background:#4ade80;color:#fff;">Switch to BSC</button>';}
+  else nw.style.display="none";
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+  WM.wireButtons();
+  document.getElementById("disconnect-btn").onclick=()=>WM.disconnect();
+  document.getElementById("dep-amount").addEventListener("input",onAmountInput);
+  const ref=new URLSearchParams(location.search).get("ref");
+  if(ref&&ethers.isAddress(ref))document.getElementById("dep-ref").value=ref;
+  setupConnectButton();
+});
+
+function setupConnectButton(){
+  const btn=document.getElementById("connect-btn");
+  setTimeout(()=>{
+    const prov=WM.getMobileProvider();
+    const isMobileUA=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+    if(prov&&isMobileUA){
+      const label={trust:"Trust Wallet",tp:"TokenPocket",cb:"Coinbase Wallet",okx:"OKX Wallet",mm:"MetaMask",any:"Wallet"};
+      btn.textContent="Connect "+(label[prov.type]||"Wallet");
+      btn.onclick=()=>WM.connectInj(prov.type);
+    } else if(!prov&&isMobileUA){
+      btn.textContent="Open in Wallet";
+      btn.onclick=showMobileWalletOptions;
+    } else {
+      btn.onclick=()=>WM.openModal();
+    }
+  },500);
+}
+
+function showMobileWalletOptions(){
+  const url=encodeURIComponent(location.href);
+  const host=location.hostname+location.pathname;
+  const opts=[
+    {name:"🛡 Trust Wallet",href:"https://link.trustwallet.com/open_url?coin_id=60&url="+url},
+    {name:"🦊 MetaMask",href:"https://metamask.app.link/dapp/"+host},
+    {name:"🔷 TokenPocket",href:"tpoutside://pull.activity?param="+encodeURIComponent(JSON.stringify({action:"dapp",value:location.href}))},
+    {name:"⚫ OKX Wallet",href:"okx://wallet/dapp/details?dappUrl="+url},
+    {name:"🔵 Coinbase Wallet",href:"https://go.cb-w.com/dapp?cb_url="+url},
+  ];
+  document.getElementById("mobile-wallet-overlay")?.remove();
+  const el=document.createElement("div");
+  el.id="mobile-wallet-overlay";
+  el.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.92);backdrop-filter:blur(10px);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;";
+  el.innerHTML='<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;color:#e2e8f0;margin-bottom:4px;">Open in Wallet</div>'
+    +'<div style="font-family:IBM Plex Mono,monospace;font-size:11px;color:#6b7280;margin-bottom:10px;text-align:center;">Select your wallet app to open this DApp</div>'
+    +opts.map(o=>`<a href="${o.href}" style="display:block;width:100%;max-width:320px;padding:14px 20px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:12px;font-family:Syne,sans-serif;font-size:14px;font-weight:700;color:#22c55e;text-decoration:none;text-align:center;">${o.name}</a>`).join("")
+    +'<button onclick="document.getElementById(\'mobile-wallet-overlay\').remove()" style="margin-top:6px;background:none;border:none;color:#6b7280;font-family:IBM Plex Mono,monospace;font-size:12px;cursor:pointer;padding:8px;">Cancel</button>';
+  document.body.appendChild(el);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  CONTRACT LOADING
+// ═══════════════════════════════════════════════════════════════════════════
+async function loadContract(){
+  if(!WM.signer)return showToast("Connect wallet first","error");
+  try{
+    showToast("Loading contract...","info");
+    const readProvider=new ethers.JsonRpcProvider("https://bsc.publicnode.com");
+    // TRANCE main contract (reads + writes)
+    trance=new ethers.Contract(CONTRACT_ADDRESS,TRANCE_ABI,readProvider);
+    // TRANCEReader (all view helper functions)
+    reader=new ethers.Contract(READER_ADDRESS,READER_ABI,readProvider);
+    const tokenAddr=await trance.token();
+    tok=new ethers.Contract(tokenAddr,ERC20_ABI,readProvider);
+    // Write versions (only TRANCE main + ERC20 need write)
+    trance.w=new ethers.Contract(CONTRACT_ADDRESS,TRANCE_ABI,WM.signer);
+    tok.w=new ethers.Contract(tokenAddr,ERC20_ABI,WM.signer);
+    // RewardDistributor (TRT bonus system) — read + write instances
+    rewardDist=new ethers.Contract(REWARD_DISTRIBUTOR_ADDRESS,REWARD_DISTRIBUTOR_ABI,readProvider);
+    rewardDist.w=new ethers.Contract(REWARD_DISTRIBUTOR_ADDRESS,REWARD_DISTRIBUTOR_ABI,WM.signer);
+    // TRANCE Token (TRT) — read-only ERC20 instance for balance queries
+    trtToken=new ethers.Contract(TRANCE_TOKEN_ADDRESS,ERC20_ABI,readProvider);
+    const[sym,dec,name]=await Promise.all([tok.symbol(),tok.decimals(),tok.name()]);
+    tokSym=sym;tokDec=Number(dec);tokName=name;
+    document.getElementById("s-bal-sym").textContent=tokSym+" balance";
+    document.getElementById("footer-addr").textContent=CONTRACT_ADDRESS;
+    // Fetch minimum deposit KAVI amount immediately
+    try{
+      const mk=await trance.getMinKaviForJoin();
+      if(mk>0n){
+        minKaviDeposit=mk;
+        const mkStr=parseFloat(ethers.formatUnits(mk,tokDec)).toFixed(2);
+        document.getElementById("g-min-dep").textContent=mkStr+" "+tokSym;
+        document.getElementById("r-min-dep").textContent=mkStr+" "+tokSym;
+        document.getElementById("dep-amount").placeholder="Min "+mkStr+" "+tokSym+" ($30)";
+        const dme=document.getElementById("dep-min-kavi");
+        if(dme)dme.textContent=mkStr+" "+tokSym+" ≈ $30";
+      }
+    }catch(e){
+      console.warn("[minKavi getMinKaviForJoin reverted, using FALLBACK_MIN]",e);
+      // DEX pair may not exist yet — use FALLBACK_MIN (300 KAVI)
+      try{
+        const fb=await trance.FALLBACK_MIN();
+        minKaviDeposit=fb;
+        const fbStr=parseFloat(ethers.formatUnits(fb,tokDec)).toFixed(2);
+        document.getElementById("g-min-dep").textContent=fbStr+" "+tokSym+" (fallback)";
+        document.getElementById("r-min-dep").textContent=fbStr+" "+tokSym;
+        document.getElementById("dep-amount").placeholder="Min "+fbStr+" "+tokSym;
+        const dme=document.getElementById("dep-min-kavi");
+        if(dme)dme.textContent=fbStr+" "+tokSym+" (DEX pair not live yet)";
+      }catch(_){
+        // Even FALLBACK_MIN failed — hardcode 300 KAVI (matches contract constant)
+        minKaviDeposit=ethers.parseUnits("300",tokDec);
+        document.getElementById("g-min-dep").textContent="300.00 "+tokSym+" (fallback)";
+        document.getElementById("r-min-dep").textContent="300.00 "+tokSym;
+        document.getElementById("dep-amount").placeholder="Min 300 "+tokSym;
+        const dme=document.getElementById("dep-min-kavi");
+        if(dme)dme.textContent="300 "+tokSym+" (DEX pair not live)";
+      }
+    }
+    // Show all sections
+    ["pool-banner","stats-grid","panels-deposit","panels-claim","ref-card","leg-card","event-feed-card"].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el)el.style.display=(id==="panels-deposit"||id==="panels-claim"||id==="pool-banner"||id==="stats-grid")?"grid":"block";
+    });
+    // Hide lookup card after wallet connects (it's a pre-connect feature)
+    {const lc=document.getElementById("lookup-card");if(lc)lc.style.display="none";}
+    // Update "My ID" badge; do a background index refresh so newcomers see their ID
+    uidRefreshMyBadge();
+    setTimeout(()=>{ handleBuildUidIndex(false).then(()=>uidRefreshMyBadge()).catch(()=>{}); }, 2000);
+    // Fetch token price
+    fetchTokenPrice(tokenAddr).catch(()=>{});
+    clearInterval(priceTimer);
+    priceTimer=setInterval(()=>fetchTokenPrice(tokenAddr).catch(()=>{}),60000);
+    await refreshAll();
+    clearInterval(rfTimer);rfTimer=setInterval(refreshAll,30000);
+    stopEventListeners();evItems=[];fromBlock=0n;
+    await loadPastEvents(200n);startLiveEvents();
+    showToast(tokName+" ("+tokSym+") loaded","success");
+  }catch(e){showToast("Load error: "+(e.reason||e.message||e),"error");console.error("[loadContract]",e);}
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  USDT VALUE LABELS
+// ═══════════════════════════════════════════════════════════════════════════
+function updateUsdtLabels(){
+  if(!currentTokenPrice) return;
+  const p=currentTokenPrice;
+  function toUsd(tokenFloat){
+    if(!tokenFloat||isNaN(tokenFloat)) return "";
+    const usd=tokenFloat*p;
+    if(usd>=1e6) return "≈ $"+(usd/1e6).toFixed(2)+"M";
+    if(usd>=1e3) return "≈ $"+(usd/1e3).toFixed(2)+"K";
+    if(usd>=1)   return "≈ $"+usd.toFixed(2);
+    if(usd>=0.01)return "≈ $"+usd.toFixed(4);
+    return "≈ $"+usd.toFixed(6);
+  }
+  function getTokenAmt(id){
+    const el=document.getElementById(id);if(!el) return 0;
+    return parseFloat(el.textContent.replace(/[^0-9.]/g,""))||0;
+  }
+  function setUsdt(id, tokenAmt){const el=document.getElementById(id);if(el) el.textContent=toUsd(tokenAmt);}
+  setUsdt("u-my-dep",getTokenAmt("s-my-dep"));
+  setUsdt("u-cycle-earned",getTokenAmt("s-cycle-earned"));
+  setUsdt("u-bal",getTokenAmt("s-bal"));
+  setUsdt("u-ref-income",getTokenAmt("s-ref-income"));
+  setUsdt("u-legclaim-income",getTokenAmt("s-legclaim-income"));
+  setUsdt("u-missed-income",getTokenAmt("s-missed-income"));
+  setUsdt("u-remaining",getTokenAmt("s-remaining"));
+  const dep=getTokenAmt("s-my-dep");
+  const maxEl=document.getElementById("u-max-roi");
+  if(maxEl&&dep>0) maxEl.textContent="max "+toUsd(dep*2);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  DEX PRICE
+// ═══════════════════════════════════════════════════════════════════════════
+async function fetchTokenPrice(tokenAddr){
+  const priceEl=document.getElementById("g-token-price");
+  const sourceEl=document.getElementById("g-price-source");
+  const changeEl=document.getElementById("g-price-change");
+  const volEl=document.getElementById("g-price-vol");
+  if(!priceEl) return;
+  try{
+    const res=await fetch("https://api.dexscreener.com/latest/dex/tokens/"+tokenAddr);
+    const data=await res.json();
+    const pairs=(data.pairs||[]).filter(p=>p.chainId==="bsc"&&p.priceUsd&&parseFloat(p.priceUsd)>0);
+    if(!pairs.length){priceEl.textContent="No DEX pair";sourceEl.textContent="Not listed yet";changeEl.textContent="--";volEl.textContent="vol: --";return;}
+    pairs.sort((a,b)=>parseFloat(b.priceUsd)-parseFloat(a.priceUsd));
+    const best=pairs[0];
+    const price=parseFloat(best.priceUsd);
+    currentTokenPrice=price;
+    priceEl.textContent="$"+price.toFixed(price<0.01?6:price<1?4:2);
+    sourceEl.textContent=(best.dexId||"DEX")+" · "+(best.pairAddress?.slice(0,8)||"")+"...";
+    const ch=parseFloat(best.priceChange?.h24||0);
+    changeEl.textContent=(ch>=0?"+":"")+ch.toFixed(2)+"%";
+    changeEl.style.color=ch>=0?"var(--green)":"var(--red)";
+    const vol=parseFloat(best.volume?.h24||0);
+    volEl.textContent="vol: $"+(vol>=1e6?(vol/1e6).toFixed(1)+"M":vol>=1e3?(vol/1e3).toFixed(1)+"K":vol.toFixed(0));
+    updateUsdtLabels();
+  }catch(e){sourceEl.textContent="Price error";console.warn("[fetchTokenPrice]",e);}
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  REFRESH ALL DATA
+// ═══════════════════════════════════════════════════════════════════════════
+async function refreshAll(){
+  if(!trance||!WM.wallet)return;
+  const fmt=v=>parseFloat(ethers.formatUnits(v,tokDec)).toFixed(4);
+  const sym=" "+tokSym;
+
+  // ═══ 1. MIN DEPOSIT — runs FIRST, always, no dependencies ═══
+  try{
+    const mk=await trance.getMinKaviForJoin();
+    minKaviDeposit=mk;
+    const mkStr=parseFloat(ethers.formatUnits(mk,tokDec)).toFixed(2);
+    document.getElementById("g-min-dep").textContent=mkStr+sym;
+    document.getElementById("r-min-dep").textContent=mkStr+sym;
+    document.getElementById("dep-amount").placeholder="Min "+mkStr+" "+tokSym+" ($30)";
+    const dme=document.getElementById("dep-min-kavi");
+    if(dme)dme.textContent=mkStr+" "+tokSym+" ≈ $30";
+  }catch(e){
+    console.warn("[minKavi]",e);
+    if(minKaviDeposit===0n){
+      minKaviDeposit=ethers.parseUnits("300",tokDec);
+      document.getElementById("g-min-dep").textContent="300.00"+sym+" (fallback)";
+      document.getElementById("r-min-dep").textContent="300.00"+sym;
+      const dme=document.getElementById("dep-min-kavi");
+      if(dme)dme.textContent="300 "+tokSym+" (DEX pair loading)";
+    }
+  }
+
+  // ═══ 2. POOL GLOBAL STATS — direct from TRANCE main ═══
+  try{
+    const usersN=await trance.totalUsers().catch(()=>0n);
+    document.getElementById("g-total-users").textContent=Number(usersN).toLocaleString();
+  }catch(e){console.warn("[globalStats]",e);}
+
+  // ═══ 3. BALANCE & ALLOWANCE ═══
+  let bal=0n;
+  try{bal=await tok.balanceOf(WM.wallet);}catch(e){console.warn("[bal]",e);}
+  try{lastAllowance=await tok.allowance(WM.wallet,CONTRACT_ADDRESS);}catch(e){console.warn("[alw]",e);}
+  document.getElementById("s-bal").textContent=fmt(bal)+sym;
+  document.getElementById("alw-row").style.display="flex";
+  document.getElementById("alw-val").textContent=lastAllowance>=ethers.MaxUint256/2n?"Unlimited":fmt(lastAllowance)+sym;
+  updateDepBtn(lastAllowance);
+  // ═══ 3b. TRT TOKEN BALANCE (Trance Token, fixed launch price $10) ═══
+  try{
+    if(trtToken){
+      const trtBal=await trtToken.balanceOf(WM.wallet).catch(()=>0n);
+      const trtFloat=parseFloat(ethers.formatUnits(trtBal,18));
+      const tEl=document.getElementById("s-trt-bal");
+      const tUsdEl=document.getElementById("u-trt-bal");
+      if(tEl) tEl.textContent=trtFloat.toFixed(4)+" TRT";
+      if(tUsdEl) tUsdEl.textContent=trtFloat>0?"≈ $"+(trtFloat*TRANCE_LAUNCH_PRICE).toFixed(2)+" (launch)":"";
+    }
+  }catch(e){console.warn("[trtBal]",e);}
+
+  // ═══ 4. USER DASHBOARD (from reader) ═══
+  let fullData=null;
+  try{if(reader)fullData=await reader.getFullUserData(WM.wallet);}catch(e){console.warn("[fullData]",e);}
+
+  if(fullData){
+    try{
+      const dash=fullData.dashboard;
+      const levels=fullData.levels;
+      const levelStatus=fullData.levelStatus;
+      const gc=fullData.grandChild;
+
+      // Stat Cards
+      const depF=parseFloat(ethers.formatUnits(dash.deposit,tokDec));
+      const cycleEarnedF=parseFloat(ethers.formatUnits(dash.cycleEarned,tokDec));
+      const maxRoi=depF*2;
+      const pct=depF>0?Math.min((cycleEarnedF/maxRoi)*100,100):0;
+      const isCapped=dash.capped;
+
+      document.getElementById("s-my-dep").textContent=fmt(dash.deposit)+sym;
+      document.getElementById("s-cycle-earned").textContent=fmt(dash.cycleEarned)+sym;
+      document.getElementById("s-ref-income").textContent=fmt(dash.totalReferralIncome)+sym;
+      document.getElementById("s-legclaim-income").textContent=fmt(dash.totalLegClaimIncome)+sym;
+      document.getElementById("s-missed-income").textContent=fmt(dash.totalMissedIncome)+sym;
+      document.getElementById("s-roi-pct").textContent=pct.toFixed(1)+"%";
+      document.getElementById("s-capped").innerHTML=isCapped?'<span class="chip-r">Yes — 2× Hit</span>':'<span class="chip-g">No</span>';
+      document.getElementById("s-remaining").textContent=fmt(dash.remainingCap)+sym;
+
+      // Claim Panel
+      const pf=fmt(dash.pendingRewardAmt);
+      document.getElementById("c-pending").textContent=pf+sym;
+      document.getElementById("c-after-fee").textContent=(parseFloat(pf)*0.95).toFixed(4)+sym;
+      document.getElementById("c-max-roi").textContent=maxRoi.toFixed(4)+sym;
+      document.getElementById("c-remaining").textContent=fmt(dash.remainingCap)+sym;
+      document.getElementById("c-cycle-earned").textContent=cycleEarnedF.toFixed(4)+sym;
+      document.getElementById("c-roi-pct").textContent=pct.toFixed(1)+"%";
+      document.getElementById("c-roi-bar").style.width=pct+"%";
+      document.getElementById("roi-done-msg").style.display=isCapped?"block":"none";
+
+      // Daily share estimate — uses activeDeposited (not totalDeposited)
+      try{
+        const activeDepN=await trance.activeDeposited().catch(()=>0n);
+        const poolN=await trance.contractPool().catch(()=>0n);
+        const activeF=parseFloat(ethers.formatUnits(activeDepN,tokDec));
+        const poolF=parseFloat(ethers.formatUnits(poolN,tokDec));
+        if(depF>0&&activeF>0&&poolF>0){
+          const daily=poolF*0.02*(depF/activeF);
+          document.getElementById("c-daily-share").textContent=daily.toFixed(6)+sym;
+        }else document.getElementById("c-daily-share").textContent="--";
+      }catch(_){document.getElementById("c-daily-share").textContent="--";}
+
+      // Claim timing
+      const nextTs=Number(dash.nextClaimTime)*1000;
+      if(nextTs>0){
+        const lastClaim=Number(dash.nextClaimTime)-86400;
+        document.getElementById("c-last").textContent=new Date(lastClaim*1000).toLocaleString();
+        if(Date.now()<nextTs){startCd(nextTs);document.getElementById("claim-btn").disabled=true;document.getElementById("c-next").textContent="Pending...";}
+        else{clearInterval(cdTimer);document.getElementById("countdown").style.display="none";document.getElementById("c-next").textContent="Now OK";document.getElementById("claim-btn").disabled=isCapped;}
+      }else{document.getElementById("c-last").textContent="Never";document.getElementById("c-next").textContent=depF>0?"Now OK":"--";document.getElementById("claim-btn").disabled=isCapped||depF===0;}
+
+      // Referral Section
+      const directQual=Number(dash.directQualified);
+      const gcQ=Number(gc.grandChildQualifiedCount);
+      const activeLevels=LEVELS.filter(lv=>{
+        if(lv.n<=3)return directQual>=lv.n;
+        return directQual>=3&&gcQ>=(lv.n-3);
+      }).length;
+      document.getElementById("ic-registered").innerHTML=dash.registered?'<span class="chip-g">Yes</span>':'<span class="chip-r">No</span>';
+      document.getElementById("ic-directs").textContent=directQual;
+      document.getElementById("ic-grandchild").textContent=gcQ;
+      document.getElementById("ic-active").textContent=activeLevels+" / 9";
+      document.getElementById("ic-ref-earned").textContent=fmt(dash.totalReferralIncome)+sym;
+      document.getElementById("ic-legclaim-earned").textContent=fmt(dash.totalLegClaimIncome)+sym;
+      document.getElementById("ic-missed").textContent=fmt(dash.totalMissedIncome)+sym;
+      document.getElementById("ic-referrer").textContent=dash.referrer&&dash.referrer!==ethers.ZeroAddress?dash.referrer.slice(0,10)+"..."+dash.referrer.slice(-8):"-- defaultReferrer --";
+      document.getElementById("ic-team-l1").textContent=Number(dash.directCount);
+
+      // Level Table from getFullUserData
+      LEVELS.forEach((lv,i)=>{
+        const unlocked=levelStatus[i];
+        const earned=parseFloat(ethers.formatUnits(levels.incomes[i],tokDec)).toFixed(4);
+        const missed=parseFloat(ethers.formatUnits(levels.missed[i],tokDec)).toFixed(4);
+        const earnedEl=document.getElementById("le-"+lv.n);
+        const missedEl=document.getElementById("lm-"+lv.n);
+        const statusEl=document.getElementById("ls-"+lv.n);
+        if(statusEl)statusEl.innerHTML=unlocked?'<span class="s-active">Active</span>':'<span class="s-locked">Locked</span>';
+        if(earnedEl)earnedEl.innerHTML=parseFloat(earned)>0?'<span style="color:var(--green);">+'+earned+" "+tokSym+"</span>":'<span style="color:var(--muted);">0</span>';
+        if(missedEl)missedEl.innerHTML=parseFloat(missed)>0?'<span style="color:var(--red);">-'+missed+" "+tokSym+"</span>":'<span style="color:var(--muted);">0</span>';
+      });
+    }catch(e){console.warn("[fullData render]",e);}
+  }
+    updateUsdtLabels();
+
+    // Team counts
+    try{
+      const teamCounts=[];
+      for(let i=1;i<=50;i++){teamCounts.push(await trance.levelTeamCount(WM.wallet,i).catch(()=>0n));}
+      LEVELS.forEach(lv=>{
+        const tcEl=document.getElementById("ltc-"+lv.n);
+        if(tcEl){const c=Number(teamCounts[lv.n-1]);tcEl.innerHTML=c>0?'<span style="color:var(--gold);">'+c+'</span>':'<span style="color:var(--muted);">0</span>';}
+      });
+      let grandTotal=0;
+      for(let i=0;i<50;i++) grandTotal+=Number(teamCounts[i]);
+      document.getElementById("s-team-total").textContent=grandTotal.toLocaleString();
+      document.getElementById("s-team-l1").textContent=Number(teamCounts[0]).toLocaleString();
+      for(let i=0;i<50;i++){const el=document.getElementById("tc-"+(i+1));if(el){const c=Number(teamCounts[i]);el.innerHTML=c>0?'<span style="color:var(--gold);font-weight:600;">'+c+'</span>':'<span style="color:var(--muted);">0</span>';}}
+    }catch(e){console.warn("[teamCounts]",e);}
+
+    // Leg-Claim data
+    try{
+      const legProgress=await reader.getLegProgress(WM.wallet);
+      const legBreakdown=await reader.getLegClaimBreakdown(WM.wallet).catch(()=>null);
+      const lcEarned=await trance.totalLegClaimIncome(WM.wallet).catch(()=>0n);
+      const lcCycle=await trance.cycleLegClaimIncome(WM.wallet).catch(()=>0n);
+      const legCount=await trance.legDepthCount(WM.wallet).catch(()=>0n);
+      document.getElementById("lc-earned").textContent=fmt(lcEarned)+sym;
+      document.getElementById("lc-cycle").textContent=fmt(lcCycle)+sym;
+      const qualCount=Number(legCount);
+      document.getElementById("lc-qual-count").textContent=qualCount;
+      document.getElementById("lc-active-status").innerHTML=qualCount>=3?'<span class="chip-g">Active ('+qualCount+' legs)</span>':'<span class="chip-r">Need '+(3-qualCount)+' more</span>';
+      // Render leg progress
+      const container=document.getElementById("leg-progress-container");
+      if(legProgress.length===0){
+        container.innerHTML='<div style="font-family:IBM Plex Mono,monospace;font-size:12px;color:var(--muted);text-align:center;padding:20px;">No direct referrals yet</div>';
+      }else{
+        container.innerHTML="";
+        // Walk each leg to find actual deepest user
+        for(let idx=0;idx<legProgress.length;idx++){
+          const leg=legProgress[idx];
+          const depth=Number(leg.currentDepth);
+          const pct=Math.min((depth/50)*100,100);
+          const short=a=>(a&&a!==ethers.ZeroAddress)?a.slice(0,6)+"..."+a.slice(-4):"--";
+          const full=a=>(a&&a!==ethers.ZeroAddress)?a:"--";
+          const hasTip=leg.chainTip&&leg.chainTip!==ethers.ZeroAddress;
+          // Robust deepest-tip resolution (BFS, handles stale chainTip & uneven subtrees)
+          const deepestUser = await resolveLegTip(leg, trance);
+          const hasJoining=!!(deepestUser&&deepestUser!==ethers.ZeroAddress);
+          const refLink=hasJoining?location.origin+location.pathname+"?ref="+deepestUser:"";
+          const div=document.createElement("div");
+          div.className="leg-progress-item";
+          let html=`<div class="leg-header"><span class="leg-addr">#${idx+1} ${short(leg.legRoot)}</span><span class="leg-depth">${depth}/50 ${leg.qualified?'<span class="chip-g">Qualified</span>':'<span class="chip-r">Not Yet</span>'}</span></div>`;
+          html+=`<div class="progress-bar"><div class="progress-fill" style="width:${pct}%;${leg.qualified?'background:linear-gradient(90deg,#34d399,#22c55e);':''}"></div></div>`;
+          html+=`<div style="display:flex;justify-content:space-between;margin-top:6px;"><span style="font-family:IBM Plex Mono,monospace;font-size:10px;color:var(--muted);">Team: ${Number(leg.teamSize).toLocaleString()}</span></div>`;
+          if(hasJoining){
+            html+=`<div style="margin-top:6px;font-family:IBM Plex Mono,monospace;font-size:10px;color:var(--green);word-break:break-all;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:8px;padding:6px 10px;">🔗 Last Joining (Depth ${depth}): ${full(deepestUser)}</div>`;
+            html+=`<div style="margin-top:4px;font-family:IBM Plex Mono,monospace;font-size:9px;color:var(--muted);margin-bottom:4px;">↓ Referral link — new joinings under this address extend your leg</div>`;
+            html+=`<div style="display:flex;gap:8px;align-items:center;"><div class="leg-ref-link" style="flex:1;font-family:IBM Plex Mono,monospace;font-size:9px;color:var(--muted);word-break:break-all;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:6px;padding:6px 8px;overflow:hidden;">${refLink}</div><button class="leg-copy-btn" style="flex-shrink:0;font-family:Syne,sans-serif;font-size:11px;font-weight:700;padding:6px 14px;border-radius:8px;border:none;cursor:pointer;background:linear-gradient(135deg,#22c55e,#15803d);color:#0a0f0a;white-space:nowrap;">Copy Link</button></div>`;
+          }else{
+            html+=`<div style="margin-top:6px;font-family:IBM Plex Mono,monospace;font-size:10px;color:var(--muted);text-align:center;padding:6px;">No joining in this leg yet</div>`;
+          }
+          div.innerHTML=html;
+          const copyBtn=div.querySelector(".leg-copy-btn");
+          const linkEl=div.querySelector(".leg-ref-link");
+          if(copyBtn&&linkEl){
+            copyBtn.addEventListener("click",()=>{
+              navigator.clipboard.writeText(linkEl.textContent).then(()=>showToast("Leg referral link copied!","success")).catch(()=>showToast("Copy manually","error"));
+            });
+          }
+          container.appendChild(div);
+        }
+      }
+      // Leg-Claim Breakdown Table
+      if(legBreakdown){
+        const tbody=document.getElementById("legclaim-tbody");
+        tbody.innerHTML="";
+        let lcMissedTotal=0n;
+        for(let i=0;i<9;i++){
+          const inc=legBreakdown.incomes[i]?parseFloat(ethers.formatUnits(legBreakdown.incomes[i],tokDec)).toFixed(4):"0.0000";
+          const miss=legBreakdown.missed[i]?parseFloat(ethers.formatUnits(legBreakdown.missed[i],tokDec)).toFixed(4):"0.0000";
+          if(legBreakdown.missed[i]) lcMissedTotal += BigInt(legBreakdown.missed[i]);
+          const tr=document.createElement("tr");
+          tr.innerHTML=`<td><span class="lvl-badge ${LBC[i]}">L${i+1}</span></td><td>${parseFloat(inc)>0?'<span style="color:#34d399;">+'+inc+' '+tokSym+'</span>':'<span style="color:var(--muted);">0</span>'}</td><td>${parseFloat(miss)>0?'<span style="color:var(--red);">-'+miss+' '+tokSym+'</span>':'<span style="color:var(--muted);">0</span>'}</td>`;
+          tbody.appendChild(tr);
+        }
+        // Dashboard: Leg-Claim Missed · Total card
+        const lcmTotalEl=document.getElementById("s-legclaim-missed-total");
+        if(lcmTotalEl) lcmTotalEl.textContent = fmt(lcMissedTotal)+sym;
+        if(currentTokenPrice>0){
+          const u=parseFloat(ethers.formatUnits(lcMissedTotal,tokDec))*currentTokenPrice;
+          const lcmTotalU=document.getElementById("u-legclaim-missed-total");
+          if(lcmTotalU) lcmTotalU.textContent = u>=0.01?"≈ $"+u.toFixed(2):"";
+        }
+      }
+    }catch(e){console.warn("[legClaim]",e);}
+
+    // 24h stats
+    fetch24hStats().catch(()=>{});
+    // TRT rewards status (non-blocking)
+    refreshTRTRewards().catch(()=>{});
+    updateRefLink();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  24H STATS
+// ═══════════════════════════════════════════════════════════════════════════
+async function fetch24hStats(){
+  if(!trance||!WM.wallet)return;
+  try{
+    const latest=await bscGetBlockNumber();
+    const from=Math.max(0,latest-28800); // ~24h of BSC blocks
+    const CHUNK=2000; // smaller chunks = more reliable
+    const ranges=[];
+    for(let s=from;s<=latest;s+=CHUNK){ranges.push([s,Math.min(s+CHUNK-1,latest)]);}
+    async function getLogsChunked(filter){
+      const results=[];
+      for(const[s,e] of ranges){
+        try{
+          const r=await bscGetLogs({...filter,fromBlock:"0x"+s.toString(16),toBlock:"0x"+e.toString(16)});
+          if(Array.isArray(r))results.push(...r);
+        }catch(_){}
+      }
+      return results;
+    }
+    const walletTopic=addrToTopic(WM.wallet);
+    const depTopic=ethers.id("DepositEvent(address,uint256,bool)");
+
+    // Fetch all 4 log types (added LegClaimMissed for 24h leg-claim missed income)
+    const[depLogs,incLogs,missLogs,lcMissLogs]=await Promise.all([
+      getLogsChunked({address:CONTRACT_ADDRESS,topics:[depTopic]}),
+      getLogsChunked({address:CONTRACT_ADDRESS,topics:[TOPIC_LEVEL_INCOME,null,walletTopic]}),
+      getLogsChunked({address:CONTRACT_ADDRESS,topics:[TOPIC_MISSED_INCOME,null,walletTopic]}),
+      getLogsChunked({address:CONTRACT_ADDRESS,topics:[TOPIC_LEG_CLAIM_MISSED,null,walletTopic]})
+    ]);
+
+    // 24h new joinings — unique depositors
+    const njEl=document.getElementById("s-new-joining");
+    if(njEl){
+      const unique=new Set(depLogs.map(l=>l.topics&&l.topics[1])).size;
+      njEl.textContent=unique.toLocaleString();
+    }
+
+    // 24h referral income & missed income & leg-claim missed income
+    const abiCoder=ethers.AbiCoder.defaultAbiCoder();
+    let inc24=0n,miss24=0n,lcMiss24=0n;
+    incLogs.forEach(l=>{
+      try{const d=abiCoder.decode(["uint256","uint256"],l.data);inc24+=d[1];}catch(_){}
+    });
+    missLogs.forEach(l=>{
+      try{const d=abiCoder.decode(["uint256","uint256"],l.data);miss24+=d[1];}catch(_){}
+    });
+    lcMissLogs.forEach(l=>{
+      // LegClaimMissed(address claimer, address indexed to, uint256 level, uint256 amount)
+      // data: level (uint256), amount (uint256)
+      try{const d=abiCoder.decode(["uint256","uint256"],l.data);lcMiss24+=d[1];}catch(_){}
+    });
+
+    const fmt24=v=>parseFloat(ethers.formatUnits(v,tokDec)).toFixed(4)+" "+tokSym;
+    const ri24El=document.getElementById("s-ref-income-24h");
+    const mi24El=document.getElementById("s-missed-income-24h");
+    if(ri24El)ri24El.textContent=inc24>0n?fmt24(inc24):"0 "+tokSym;
+    if(mi24El)mi24El.textContent=miss24>0n?fmt24(miss24):"0 "+tokSym;
+
+    // Leg-Claim MISSED — 24h (0.5% slot bonus passed over you because unqualified)
+    const lcm24El=document.getElementById("s-legclaim-missed-24h");
+    if(lcm24El)lcm24El.textContent=fmt24(lcMiss24);
+
+    // USD values for 24h cards
+    if(currentTokenPrice>0){
+      const toUsd=v=>{const u=v*currentTokenPrice;return u>=0.01?"≈ $"+u.toFixed(2):"";};
+      const ri24u=document.getElementById("u-ref-income-24h");
+      const mi24u=document.getElementById("u-missed-income-24h");
+      if(ri24u)ri24u.textContent=toUsd(parseFloat(ethers.formatUnits(inc24,tokDec)));
+      if(mi24u)mi24u.textContent=toUsd(parseFloat(ethers.formatUnits(miss24,tokDec)));
+      const lcm24u=document.getElementById("u-legclaim-missed-24h");
+      if(lcm24u)lcm24u.textContent=toUsd(parseFloat(ethers.formatUnits(lcMiss24,tokDec)));
+    }
+  }catch(e){console.warn("[fetch24hStats]",e);}
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  DEPOSIT + CLAIM ACTIONS
+// ═══════════════════════════════════════════════════════════════════════════
+function updateDepBtn(allowance){
+  const btn=document.getElementById("dep-action-btn");if(!btn)return;
+  const raw=parseFloat(document.getElementById("dep-amount").value)||0;
+  if(raw<=0){btn.disabled=true;btn.textContent="Approve & Deposit";return;}
+  try{
+    const amtBig=ethers.parseUnits(String(raw),tokDec);
+    // Check against live minimum from contract
+    if(minKaviDeposit>0n&&amtBig<minKaviDeposit){
+      btn.disabled=true;
+      const minF=parseFloat(ethers.formatUnits(minKaviDeposit,tokDec));
+      btn.textContent="Min "+minF.toFixed(2)+" "+tokSym+" ($30)";
+      return;
+    }
+    btn.disabled=false;
+    btn.textContent=allowance>=amtBig?"Deposit":"Approve & Deposit";
+  }catch(_){btn.disabled=true;btn.textContent="Approve & Deposit";}
+}
+
+function onAmountInput(){
+  const a=parseFloat(document.getElementById("dep-amount").value)||0,sym=tokSym||"KAVI";
+  document.getElementById("dep-fee").textContent=(a*0.05).toFixed(4)+" "+sym;
+  document.getElementById("dep-ref-dist").textContent=(a*0.45).toFixed(4)+" "+sym;
+  document.getElementById("dep-pool").textContent=(a*0.50).toFixed(4)+" "+sym;
+  // Show min deposit warning
+  const warnEl=document.getElementById("dep-min-warn");
+  if(warnEl&&minKaviDeposit>0n&&a>0){
+    const minF=parseFloat(ethers.formatUnits(minKaviDeposit,tokDec));
+    if(a<minF){warnEl.style.display="block";warnEl.textContent="⚠ Below minimum: "+minF.toFixed(2)+" "+sym+" ($30 DEX price)";}
+    else{warnEl.style.display="none";}
+  }else if(warnEl){warnEl.style.display="none";}
+  updateDepBtn(lastAllowance);
+}
+function setAmt(v){document.getElementById("dep-amount").value=v;onAmountInput();}
+async function setAmtMax(){
+  if(!tok||!WM.wallet)return showToast("Connect wallet first","error");
+  try{const b=await tok.balanceOf(WM.wallet);document.getElementById("dep-amount").value=parseFloat(ethers.formatUnits(b,tokDec)).toFixed(4);onAmountInput();}
+  catch(e){showToast("Balance error","error");}
+}
+
+async function approveAndDeposit(){
+  if(!trance||!tok||!WM.isConnected)return showToast("Connect wallet first","error");
+  const raw=document.getElementById("dep-amount").value;
+  if(!raw||parseFloat(raw)<=0)return showToast("Enter deposit amount","error");
+  let amount;
+  try{amount=ethers.parseUnits(String(parseFloat(raw)),tokDec);}catch(_){return showToast("Invalid amount","error");}
+  // Fetch fresh minimum from contract and validate
+  try{
+    const liveMin=await trance.getMinKaviForJoin();
+    minKaviDeposit=liveMin;
+    if(amount<liveMin){
+      const minF=parseFloat(ethers.formatUnits(liveMin,tokDec));
+      showToast("Minimum deposit is "+minF.toFixed(2)+" "+tokSym+" ($30)","error");
+      updateDepBtn(lastAllowance);
+      return;
+    }
+  }catch(e){
+    console.warn("[minCheck reverted, using stored min]",e);
+    // Use stored minKaviDeposit (from loadContract fallback)
+    if(minKaviDeposit>0n&&amount<minKaviDeposit){
+      const minF=parseFloat(ethers.formatUnits(minKaviDeposit,tokDec));
+      showToast("Minimum deposit is "+minF.toFixed(2)+" "+tokSym,"error");
+      updateDepBtn(lastAllowance);
+      return;
+    }
+    // If both fail, let the contract revert naturally
+  }
+  const btn=document.getElementById("dep-action-btn");
+  try{
+    btn.disabled=true;
+    const alw=await tok.allowance(WM.wallet,CONTRACT_ADDRESS);
+    if(alw<amount){
+      btn.innerHTML='<span class="spinner"></span>Approving...';
+      showToast("Requesting approval...","info");
+      const appTx=await tok.w.approve(CONTRACT_ADDRESS,ethers.MaxUint256);
+      await appTx.wait();
+      lastAllowance=ethers.MaxUint256;
+      document.getElementById("alw-val").textContent="Unlimited";
+      showBanner("✅","Approved Successfully!","Token approval confirmed. Now depositing your KAVI...",appTx.hash);
+      // Auto-close banner after 3s and continue to deposit
+      await new Promise(r=>setTimeout(r,2500));
+      closeBanner();
+    }
+    btn.innerHTML='<span class="spinner"></span>Depositing...';
+    let ref=document.getElementById("dep-ref").value.trim();
+    if(!ref||!ethers.isAddress(ref)||ref.toLowerCase()===WM.wallet.toLowerCase())ref=ethers.ZeroAddress;
+    const tx=await trance.w.deposit(amount,ref);
+    document.getElementById("dep-tx").innerHTML='Tx: <a href="'+EXPLORER+'/tx/'+tx.hash+'" target="_blank">'+tx.hash.slice(0,20)+'...</a>';
+    showToast("Deposit submitted, waiting for confirmation...","info");
+    await tx.wait();
+    showBanner("🎉","Deposit Successful!",parseFloat(ethers.formatUnits(amount,tokDec)).toFixed(2)+" "+tokSym+" deposited successfully into TRANCE protocol.",tx.hash);
+    document.getElementById("dep-amount").value="";onAmountInput();
+    await refreshAll();
+  }catch(e){
+    if(e.code===4001||e.message?.includes("rejected")||e.message?.includes("user rejected"))showToast("Rejected by wallet","error");
+    else showToast("Error: "+(e.reason||e.message||e),"error");
+    console.error("[approveAndDeposit]",e);
+  }finally{btn.disabled=false;btn.textContent="Approve & Deposit";updateDepBtn(lastAllowance);}
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  TRT BONUS REWARDS (RewardDistributor @ 0x18d6...9c40)
+//  User deposits normally to TRANCE; this system mints TRT on top based on
+//  unclaimed deposit delta × current tier per-unit rate.
+// ═══════════════════════════════════════════════════════════════════════════
+async function refreshTRTRewards(){
+  if(!rewardDist||!WM.isConnected||!WM.wallet) return;
+  try{
+    // Tier info
+    const tier=await rewardDist.currentTierInfo().catch(()=>null);
+    if(tier){
+      const perUnit=tier.perUnit||tier[0]||0n;
+      const users=tier.totalUsers_||tier[1]||0n;
+      const active=tier.isActive!==undefined?tier.isActive:tier[2];
+      const uN=Number(users);
+      const tiers=[
+        {max:5000,label:"Tier 1 (0–4,999)"},
+        {max:10000,label:"Tier 2 (5k–9,999)"},
+        {max:25000,label:"Tier 3 (10k–24,999)"},
+        {max:50000,label:"Tier 4 (25k–49,999)"},
+        {max:100000,label:"Tier 5 (50k–99,999)"},
+        {max:200000,label:"Tier 6 (100k–199k)"},
+        {max:500000,label:"Tier 7 (200k–499k)"}
+      ];
+      let curTier=null,nextBreak=null;
+      for(const t of tiers){ if(uN<t.max){ curTier=t; nextBreak=t.max; break; } }
+      const e1=document.getElementById("trt-tier-label");
+      const e2=document.getElementById("trt-per-unit");
+      const e3=document.getElementById("trt-network-users");
+      const e4=document.getElementById("trt-next-tier");
+      if(e1) e1.textContent=active?(curTier?curTier.label:"--"):"❌ Ended (500k+)";
+      if(e2) e2.textContent=active&&perUnit>0n?parseFloat(ethers.formatUnits(perUnit,18)).toFixed(4)+" TRT":"0 TRT";
+      if(e3) e3.textContent=uN.toLocaleString();
+      if(e4) e4.textContent=nextBreak?(nextBreak-uN).toLocaleString()+" users remaining":"last tier active";
+
+      // Highlight tier-system table rows: completed / active / upcoming
+      // Row 1-7 = active tiers, row 8 = ENDED state
+      const breaks=[5000,10000,25000,50000,100000,200000,500000];
+      const tableRows=document.querySelectorAll("#trt-tier-tbody tr");
+      let activeIdx=-1;
+      if(active){ for(let i=0;i<breaks.length;i++){ if(uN<breaks[i]){ activeIdx=i; break; } } }
+      else { activeIdx=7; } // 500k+ row
+      for(let i=0;i<tableRows.length;i++){
+        const row=tableRows[i];
+        const statusEl=document.getElementById("trt-tier-status-"+(i+1));
+        // Reset row styling
+        row.style.background=""; row.style.opacity="";
+        if(i===activeIdx){
+          // Active tier: glow + chip
+          row.style.background="rgba(52,211,153,.10)";
+          if(statusEl) statusEl.innerHTML='<span style="background:rgba(52,211,153,.18);color:#34d399;font-weight:700;padding:2px 8px;border-radius:10px;font-size:10px;">▶ ACTIVE</span>';
+        }else if(i<activeIdx){
+          // Completed tier
+          row.style.opacity="0.55";
+          if(statusEl) statusEl.innerHTML='<span style="color:var(--muted);font-size:10px;">✓ Done</span>';
+        }else{
+          // Upcoming tier
+          if(statusEl){
+            if(i===7){ statusEl.innerHTML='<span style="color:#34d399;font-size:10px;">DEX listing 🚀</span>'; }
+            else { statusEl.innerHTML='<span style="color:var(--muted);font-size:10px;">Upcoming</span>'; }
+          }
+        }
+      }
+    }
+    // Pending claim for current user
+    const pending=await rewardDist.pendingRewards(WM.wallet).catch(()=>null);
+    const lastClaimed=await rewardDist.lastClaimedDeposit(WM.wallet).catch(()=>0n);
+    const userDep=await trance.users(WM.wallet).then(u=>u.deposit||u[1]||0n).catch(()=>0n);
+    const unclaimedBI=userDep>lastClaimed?(userDep-lastClaimed):0n;
+    const sym=" "+tokSym;
+    const fmt=v=>{try{return parseFloat(ethers.formatUnits(v,tokDec)).toFixed(4);}catch(_){return"0";}};
+    const e5=document.getElementById("trt-user-deposit");
+    const e6=document.getElementById("trt-already");
+    const e7=document.getElementById("trt-unclaimed");
+    const e8=document.getElementById("trt-multiplier");
+    const e9=document.getElementById("trt-claimable");
+    if(e5) e5.textContent=fmt(userDep)+sym;
+    if(e6) e6.textContent=fmt(lastClaimed)+sym;
+    if(e7) e7.textContent=fmt(unclaimedBI)+sym;
+    let canClaim=false,claimableAmt=0n,mult=0n;
+    if(pending){
+      claimableAmt=pending.claimableAmount||pending[0]||0n;
+      mult=pending.multiplier||pending[1]||0n;
+      canClaim=pending.canClaim!==undefined?pending.canClaim:pending[3];
+    }
+    if(e8) e8.textContent=mult>0n?(Number(mult)+"×"):"--";
+    if(e9) e9.textContent=claimableAmt>0n?(parseFloat(ethers.formatUnits(claimableAmt,18)).toFixed(4)+" TRT"):"0 TRT";
+    const btn=document.getElementById("trt-claim-btn");
+    if(btn){
+      btn.disabled=!canClaim;
+      btn.textContent=canClaim?"Claim TRT Rewards":(unclaimedBI>0n?"No active tier":(userDep===lastClaimed?"Nothing to claim":"Deposit first"));
+    }
+  }catch(e){console.warn("[refreshTRTRewards]",e);}
+}
+
+async function claimTRT(){
+  if(!rewardDist||!WM.isConnected)return showToast("Connect wallet first","error");
+  const btn=document.getElementById("trt-claim-btn");
+  const origTxt=btn.textContent;
+  try{
+    btn.disabled=true;
+    btn.innerHTML='<span class="spinner"></span>Claiming TRT...';
+    const tx=await rewardDist.w.claimRewards();
+    document.getElementById("trt-tx").innerHTML='Tx: <a href="'+EXPLORER+'/tx/'+tx.hash+'" target="_blank">'+tx.hash.slice(0,20)+'...</a>';
+    showToast("TRT claim submitted, waiting for confirmation...","info");
+    const rcpt=await tx.wait();
+    // Parse RewardClaimed event to show exact amount
+    let claimedAmt=null;
+    try{
+      const iface=new ethers.Interface(REWARD_DISTRIBUTOR_ABI);
+      for(const log of rcpt.logs){
+        try{
+          const parsed=iface.parseLog({topics:log.topics,data:log.data});
+          if(parsed && parsed.name==="RewardClaimed"){
+            claimedAmt=parsed.args.reward1MintedToUser;
+            break;
+          }
+        }catch(_){}
+      }
+    }catch(_){}
+    const trtStr=claimedAmt?parseFloat(ethers.formatUnits(claimedAmt,18)).toFixed(4):"—";
+    showBanner("🎁","TRT Reward Claimed!",trtStr+" TRT minted to your wallet. Rewards decrease as more users join — deposit early to maximize bonuses.",tx.hash);
+    await refreshTRTRewards();
+  }catch(e){
+    if(e.code===4001||e.message?.includes("rejected")||e.message?.includes("user rejected"))showToast("Rejected by wallet","error");
+    else if(e.message?.includes("NoNewDeposit"))showToast("Nothing to claim — make a new deposit first","error");
+    else showToast("Error: "+(e.reason||e.message||e).toString().slice(0,80),"error");
+    console.error("[claimTRT]",e);
+  }finally{btn.disabled=false;btn.textContent=origTxt||"Claim TRT Rewards";refreshTRTRewards();}
+}
+
+async function claimRewards(){
+  if(!trance||!WM.isConnected)return showToast("Connect wallet first","error");
+  const btn=document.getElementById("claim-btn");
+  try{
+    btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Claiming...';
+    const tx=await trance.w.claim();
+    document.getElementById("claim-tx").innerHTML='Tx: <a href="'+EXPLORER+'/tx/'+tx.hash+'" target="_blank">'+tx.hash.slice(0,20)+'...</a>';
+    showToast("Claim submitted, waiting...","info");
+    await tx.wait();
+    showBanner("💰","Claim Successful!","Daily Claim successfully. 5% fee distributed as Leg-Claim bonus to qualifying uplines.",tx.hash);
+    await refreshAll();
+  }catch(e){
+    if(e.code===4001||e.message?.includes("rejected")||e.message?.includes("user rejected"))showToast("Claim rejected","error");
+    else if(e.message?.includes("wait 24h")||e.reason?.includes("wait 24h"))showToast("Wait 24h between claims","error");
+    else if(e.message?.includes("2x cap")||e.reason?.includes("2x cap"))showToast("2× cap reached — re-deposit","error");
+    else if(e.message?.includes("no deposit")||e.reason?.includes("no deposit"))showToast("No deposit found","error");
+    else if(e.message?.includes("pool empty")||e.reason?.includes("pool empty"))showToast("Pool is empty","error");
+    else showToast("Claim error: "+(e.reason||e.message||e),"error");
+    btn.disabled=false;btn.textContent="Claim Rewards";
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  USER LOOKUP — search any wallet address
+// ═══════════════════════════════════════════════════════════════════════════
+let _luAddr=null;     // address of currently looked-up user
+let _luProvider=null; // reusable provider for lookup calls
+
+function showLookupTab(name){
+  document.querySelectorAll('.lu-pane').forEach(p=>p.classList.toggle('active',p.dataset.luPane===name));
+  document.querySelectorAll('.lu-tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.luTab===name));
+  // Lazy-load events when More tab is first opened for a given address
+  if(name==='more' && _luAddr){
+    const list=document.getElementById('lu-events-list');
+    if(list && list.dataset.loaded!==_luAddr){ refreshLookupEvents(); }
+  }
+}
+
+async function lookupUser(){
+  const raw=document.getElementById("lookup-addr").value.trim();
+  const errEl=document.getElementById("lookup-error");
+  const resEl=document.getElementById("lookup-result");
+  const clrBtn=document.getElementById("lookup-clear-btn");
+  const btn=document.getElementById("lookup-btn");
+  errEl.style.display="none";resEl.style.display="none";
+  if(!raw){errEl.textContent="Enter a BSC wallet address (0x...) or a user ID number";errEl.style.display="block";return;}
+  // Resolve input → address (accepts 0x... OR numeric ID)
+  let addr=uidResolveInput(raw);
+  if(!addr){
+    if(/^\d+$/.test(raw)){
+      errEl.textContent="ID #"+raw+" not found in the index. Click \"Build / Update\" to scan for new users, or paste the address directly.";
+    }else{
+      errEl.textContent="Enter a valid BSC wallet address (0x...) or a user ID number";
+    }
+    errEl.style.display="block";return;
+  }
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Searching...';
+  try{
+    const readProvider=new ethers.JsonRpcProvider("https://bsc.publicnode.com");
+    _luProvider=readProvider;
+    const tranceRead=new ethers.Contract(CONTRACT_ADDRESS,TRANCE_ABI,readProvider);
+    const readerC=new ethers.Contract(READER_ADDRESS,READER_ABI,readProvider);
+
+    // Fetch the rich full dashboard data in one call (dashboard + levels + levelStatus + grandChild)
+    let fullData=null;
+    try{fullData=await readerC.getFullUserData(addr);}catch(_){}
+    if(!fullData){errEl.textContent="Could not read user data. Address may not be registered.";errEl.style.display="block";btn.disabled=false;btn.textContent="Search";return;}
+    const dash=fullData.dashboard;
+    if(!dash.registered){errEl.textContent="This address is not registered in TRANCE.";errEl.style.display="block";btn.disabled=false;btn.textContent="Search";return;}
+
+    // Keep state for sub-tab operations (events refresh, etc.)
+    _luAddr=addr;
+    document.getElementById("lu-addr-display").textContent=addr;
+
+    // User ID pill (if we have it in the index)
+    const uid = uidGetId(addr);
+    const idPill = document.getElementById("lu-id-pill");
+    if(uid){ document.getElementById("lu-id-num").textContent = uid; idPill.style.display = "inline-block"; }
+    else { idPill.style.display = "none"; }
+
+    const fmt=v=>{try{return parseFloat(ethers.formatUnits(v,tokDec)).toFixed(4);}catch(_){return"0";}};
+    const sym=" "+(tokSym||"KAVI");
+    const maxRet=dash.maxReturn||(dash.deposit*200n/100n);
+    const cycleEarnedF=parseFloat(ethers.formatUnits(dash.cycleEarned||0n,tokDec));
+    const maxRoiF=parseFloat(ethers.formatUnits(maxRet,tokDec));
+    const pct=maxRoiF>0?Math.min((cycleEarnedF/maxRoiF)*100,100):0;
+
+    // ── HOME sub-tab ─────────────────────────────────────
+    document.getElementById("lu-registered").innerHTML=dash.registered?'<span class="chip-g">Yes</span>':'<span class="chip-r">No</span>';
+    document.getElementById("lu-deposit").textContent=fmt(dash.deposit)+sym;
+    document.getElementById("lu-cycle-earned").textContent=fmt(dash.cycleEarned)+sym;
+    document.getElementById("lu-remaining").textContent=fmt(dash.remainingCap)+sym;
+    document.getElementById("lu-capped").innerHTML=dash.capped?'<span class="chip-r">Yes</span>':'<span class="chip-g">No</span>';
+    document.getElementById("lu-roi-pct").textContent=pct.toFixed(1)+"%";
+    document.getElementById("lu-directs").textContent=Number(dash.directQualified);
+    document.getElementById("lu-direct-count").textContent=Number(dash.directCount);
+    document.getElementById("lu-grandchild").textContent=Number(fullData.grandChild?.grandChildQualifiedCount||0n);
+    document.getElementById("lu-ref-income").textContent=fmt(dash.totalReferralIncome)+sym;
+    document.getElementById("lu-legclaim").textContent=fmt(dash.totalLegClaimIncome)+sym;
+    document.getElementById("lu-missed").textContent=fmt(dash.totalMissedIncome)+sym;
+    try{const ldc=await tranceRead.legDepthCount(addr);document.getElementById("lu-legcount").textContent=Number(ldc);}catch(_){document.getElementById("lu-legcount").textContent="--";}
+    const ref=dash.referrer;
+    const refIdSuffix = (ref && ref!==ethers.ZeroAddress) ? (uidGetId(ref) ? ' · ID #'+uidGetId(ref) : '') : '';
+    document.getElementById("lu-referrer").textContent=(ref&&ref!==ethers.ZeroAddress?ref:"-- defaultReferrer --")+refIdSuffix;
+    document.getElementById("lu-ref-link").textContent=location.origin+location.pathname+"?ref="+addr;
+
+    // ── DEPOSIT sub-tab ──────────────────────────────────
+    document.getElementById("lu-d-deposit").textContent=fmt(dash.deposit)+sym;
+    document.getElementById("lu-d-maxret").textContent=fmt(maxRet)+sym;
+    document.getElementById("lu-d-cycle").textContent=fmt(dash.cycleEarned)+sym;
+    document.getElementById("lu-d-remain").textContent=fmt(dash.remainingCap)+sym;
+    document.getElementById("lu-d-referrer").textContent=ref&&ref!==ethers.ZeroAddress?ref:"-- defaultReferrer --";
+    document.getElementById("lu-d-minjoin").textContent=fmt(dash.minJoinKavi)+sym;
+    document.getElementById("lu-d-pct").textContent=pct.toFixed(1)+"%";
+    document.getElementById("lu-d-bar").style.width=pct+"%";
+
+    // ── CLAIM sub-tab ────────────────────────────────────
+    const pending=dash.pendingRewardAmt||0n;
+    const afterFee=pending-(pending*5n/100n);
+    document.getElementById("lu-c-pending").textContent=fmt(pending)+sym;
+    document.getElementById("lu-c-after-fee").textContent=fmt(afterFee)+sym;
+    document.getElementById("lu-c-max").textContent=fmt(maxRet)+sym;
+    document.getElementById("lu-c-claimed").textContent=fmt(dash.claimed)+sym;
+    document.getElementById("lu-c-remain").textContent=fmt(dash.remainingCap)+sym;
+    document.getElementById("lu-c-cycle").textContent=fmt(dash.cycleEarned)+sym;
+    const nextTs=Number(dash.nextClaimTime||0n)*1000;
+    const nowMs=Date.now();
+    if(nextTs>0){
+      const lastMs=(Number(dash.nextClaimTime)-86400)*1000;
+      document.getElementById("lu-c-last").textContent=lastMs>0?new Date(lastMs).toLocaleString():"Never";
+      document.getElementById("lu-c-next").textContent=nextTs<=nowMs?"Available now":new Date(nextTs).toLocaleString();
+    }else{
+      document.getElementById("lu-c-last").textContent="Never";
+      document.getElementById("lu-c-next").textContent="--";
+    }
+    document.getElementById("lu-c-canclaim").innerHTML=dash.canClaim?'<span class="chip-g">Yes</span>':'<span class="chip-r">No</span>';
+    document.getElementById("lu-c-pct").textContent=pct.toFixed(1)+"%";
+    document.getElementById("lu-c-bar").style.width=pct+"%";
+
+    // ── TEAM sub-tab ─────────────────────────────────────
+    // 9-level table
+    try{
+      const levels=fullData.levels;
+      const levelStatus=fullData.levelStatus;
+      const teamCounts=[];
+      for(let i=1;i<=50;i++){teamCounts.push(await tranceRead.levelTeamCount(addr,i).catch(()=>0n));}
+      const lvlTbody=document.getElementById("lu-level-tbody");
+      lvlTbody.innerHTML="";
+      let grandTotal=0;
+      for(let i=0;i<50;i++) grandTotal+=Number(teamCounts[i]);
+      LEVELS.forEach((lv,i)=>{
+        const unlocked=levelStatus[i];
+        const earned=parseFloat(ethers.formatUnits(levels.incomes[i],tokDec)).toFixed(4);
+        const missed=parseFloat(ethers.formatUnits(levels.missed[i],tokDec)).toFixed(4);
+        const tc=Number(teamCounts[lv.n-1]);
+        const tr=document.createElement("tr");
+        tr.innerHTML=`<td><span class="lvl-badge">L${lv.n}</span></td>`+
+          `<td>${lv.pct}%</td>`+
+          `<td>${tc>0?'<span style="color:var(--gold);">'+tc+'</span>':'<span style="color:var(--muted);">0</span>'}</td>`+
+          `<td>${parseFloat(earned)>0?'<span style="color:var(--green);">+'+earned+' '+tokSym+'</span>':'<span style="color:var(--muted);">0</span>'}</td>`+
+          `<td>${parseFloat(missed)>0?'<span style="color:var(--red);">-'+missed+' '+tokSym+'</span>':'<span style="color:var(--muted);">0</span>'}</td>`+
+          `<td>${unlocked?'<span class="s-active">Active</span>':'<span class="s-locked">Locked</span>'}</td>`;
+        lvlTbody.appendChild(tr);
+      });
+      document.getElementById("lu-team-total").textContent=grandTotal.toLocaleString();
+      // 50-level team count (5-column layout: 10 rows x 5 levels = 50)
+      const tcTbody=document.getElementById("lu-team-count-tbody");
+      tcTbody.innerHTML="";
+      for(let row=0;row<10;row++){
+        const tr=document.createElement("tr");
+        for(let col=0;col<5;col++){
+          const lvl=row+col*10+1;
+          const c=Number(teamCounts[lvl-1]);
+          tr.innerHTML+=`<td><span class="lvl-badge">L${lvl}</span></td><td>${c>0?'<span style="color:var(--gold);font-weight:600;">'+c+'</span>':'<span style="color:var(--muted);">0</span>'}</td>`;
+        }
+        tcTbody.appendChild(tr);
+      }
+    }catch(e){console.warn("[lu teamTables]",e);}
+
+    // Leg-Claim breakdown table (+ compute Leg-Claim Missed total for Home)
+    let lcMissedTotalBI=0n;
+    try{
+      const lcB=await readerC.getLegClaimBreakdown(addr).catch(()=>null);
+      const lcTbody=document.getElementById("lu-legclaim-tbody");
+      lcTbody.innerHTML="";
+      if(lcB){
+        for(let i=0;i<9;i++){
+          const inc=lcB.incomes[i]?parseFloat(ethers.formatUnits(lcB.incomes[i],tokDec)).toFixed(4):"0.0000";
+          const miss=lcB.missed[i]?parseFloat(ethers.formatUnits(lcB.missed[i],tokDec)).toFixed(4):"0.0000";
+          if(lcB.missed[i]) lcMissedTotalBI += BigInt(lcB.missed[i]);
+          const tr=document.createElement("tr");
+          tr.innerHTML=`<td><span class="lvl-badge">L${i+1}</span></td>`+
+            `<td>${parseFloat(inc)>0?'<span style="color:#34d399;">+'+inc+' '+tokSym+'</span>':'<span style="color:var(--muted);">0</span>'}</td>`+
+            `<td>${parseFloat(miss)>0?'<span style="color:var(--red);">-'+miss+' '+tokSym+'</span>':'<span style="color:var(--muted);">0</span>'}</td>`;
+          lcTbody.appendChild(tr);
+        }
+      }
+    }catch(e){console.warn("[lu legBreakdown]",e);}
+    document.getElementById("lu-lcmissed").textContent=fmt(lcMissedTotalBI)+sym;
+
+    // Leg progress
+    const legsContainer=document.getElementById("lu-legs-container");
+    try{
+      const legProgress=await readerC.getLegProgress(addr);
+      if(legProgress.length===0){
+        legsContainer.innerHTML='<div style="font-family:IBM Plex Mono,monospace;font-size:11px;color:var(--muted);text-align:center;padding:12px;">No direct referrals yet</div>';
+      }else{
+        legsContainer.innerHTML="";
+        for(let idx=0;idx<legProgress.length;idx++){
+          const leg=legProgress[idx];
+          const depth=Number(leg.currentDepth);
+          const lpct=Math.min((depth/50)*100,100);
+          const short=a=>(a&&a!==ethers.ZeroAddress)?a.slice(0,6)+"..."+a.slice(-4):"--";
+          const full=a=>(a&&a!==ethers.ZeroAddress)?a:"--";
+          const deepestUser=await resolveLegTip(leg,tranceRead);
+          const hasJoining=!!(deepestUser&&deepestUser!==ethers.ZeroAddress);
+          const tipRefLink=hasJoining?location.origin+location.pathname+"?ref="+deepestUser:"";
+          const div=document.createElement("div");
+          div.className="leg-progress-item";
+          let h=`<div class="leg-header"><span class="leg-addr">#${idx+1} ${short(leg.legRoot)}</span><span class="leg-depth">${depth}/50 ${leg.qualified?'<span class="chip-g">Qualified</span>':'<span class="chip-r">Not Yet</span>'}</span></div>`;
+          h+=`<div class="progress-bar"><div class="progress-fill" style="width:${lpct}%;${leg.qualified?'background:linear-gradient(90deg,#34d399,#22c55e);':''}"></div></div>`;
+          h+=`<div style="display:flex;justify-content:space-between;margin-top:6px;"><span style="font-family:IBM Plex Mono,monospace;font-size:10px;color:var(--muted);">Team: ${Number(leg.teamSize).toLocaleString()}</span></div>`;
+          if(hasJoining){
+            h+=`<div style="margin-top:6px;font-family:IBM Plex Mono,monospace;font-size:10px;color:var(--green);word-break:break-all;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:8px;padding:6px 10px;">🔗 Last Joining (Depth ${depth}): ${full(deepestUser)}</div>`;
+            h+=`<div style="margin-top:4px;font-family:IBM Plex Mono,monospace;font-size:9px;color:var(--muted);margin-bottom:4px;">↓ Referral link — new joinings extend this leg</div>`;
+            h+=`<div style="display:flex;gap:8px;align-items:center;"><div class="lu-leg-link" style="flex:1;font-family:IBM Plex Mono,monospace;font-size:9px;color:var(--muted);word-break:break-all;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:6px;padding:6px 8px;">${tipRefLink}</div><button class="lu-leg-copy" style="flex-shrink:0;font-family:Syne,sans-serif;font-size:11px;font-weight:700;padding:6px 14px;border-radius:8px;border:none;cursor:pointer;background:linear-gradient(135deg,#22c55e,#15803d);color:#0a0f0a;white-space:nowrap;">Copy Link</button></div>`;
+          }else{
+            h+=`<div style="margin-top:6px;font-family:IBM Plex Mono,monospace;font-size:10px;color:var(--muted);text-align:center;padding:6px;">No joining in this leg yet</div>`;
+          }
+          div.innerHTML=h;
+          const copyBtn=div.querySelector(".lu-leg-copy");
+          const linkEl=div.querySelector(".lu-leg-link");
+          if(copyBtn&&linkEl){
+            copyBtn.addEventListener("click",()=>{
+              navigator.clipboard.writeText(linkEl.textContent).then(()=>showToast("Leg referral link copied!","success")).catch(()=>showToast("Copy manually","error"));
+            });
+          }
+          legsContainer.appendChild(div);
+        }
+      }
+    }catch(e){
+      console.warn("[lu legs]",e);
+      legsContainer.innerHTML='<div style="font-family:IBM Plex Mono,monospace;font-size:11px;color:var(--muted);text-align:center;padding:12px;">Could not load leg data</div>';
+    }
+
+    // ── MORE sub-tab ─────────────────────────────────────
+    const bsLink=document.getElementById("lu-bscscan-link");
+    if(bsLink) bsLink.href=EXPLORER+"/address/"+addr;
+    const evList=document.getElementById("lu-events-list");
+    if(evList){ evList.dataset.loaded=""; evList.innerHTML='<div style="padding:20px;text-align:center;font-family:IBM Plex Mono,monospace;font-size:11px;color:var(--muted);">Open "⋯ More" tab to load events</div>'; }
+    document.getElementById("lu-events-status").textContent="Not loaded";
+
+    // Reset to Home sub-tab on every new search
+    showLookupTab('home');
+    resEl.style.display="block";clrBtn.style.display="inline-block";
+  }catch(e){
+    console.warn("[lookupUser]",e);
+    errEl.textContent="Error: "+(e.reason||e.message||"Failed to fetch user data");errEl.style.display="block";
+  }finally{btn.disabled=false;btn.textContent="Search";}
+}
+
+async function refreshLookupEvents(){
+  if(!_luAddr) return;
+  const list=document.getElementById("lu-events-list");
+  const statusEl=document.getElementById("lu-events-status");
+  const refreshBtn=document.getElementById("lu-events-refresh");
+  if(refreshBtn){refreshBtn.disabled=true;refreshBtn.textContent="Loading...";}
+  statusEl.textContent="Loading...";
+  try{
+    const latest=await bscGetBlockNumber();
+    const from=Math.max(0,latest-28800); // ~24h
+    const items=await fetchWalletLogs(_luAddr,from,latest);
+    if(!items||items.length===0){
+      list.innerHTML='<div style="padding:20px;text-align:center;font-family:IBM Plex Mono,monospace;font-size:11px;color:var(--muted);">No events in the last 24h</div>';
+    }else{
+      list.innerHTML="";
+      const top=items.slice(0,80);
+      for(const it of top){
+        const div=document.createElement("div");
+        div.className="lu-ev-item";
+        const amt=it.amount!==undefined?parseFloat(ethers.formatUnits(it.amount,tokDec)).toFixed(4)+" "+tokSym:"";
+        let typeLbl="",typeClass="",sign="";
+        if(it.type==="income"){typeLbl="Income L"+it.level;typeClass="income";sign="+";}
+        else if(it.type==="missed"){typeLbl="Missed L"+it.level;typeClass="missed";sign="-";}
+        else if(it.type==="legclaim"){typeLbl="Leg-Claim L"+it.level;typeClass="legclaim";sign="+";}
+        else if(it.type==="legmissed"){typeLbl="Leg Missed L"+it.level;typeClass="legmissed";sign="-";}
+        else {typeLbl=it.type||"?";typeClass="income";}
+        const txUrl=EXPLORER+"/tx/"+it.txHash;
+        div.innerHTML=`<span class="lu-ev-type ${typeClass}">${typeLbl}</span>`+
+          `<span class="lu-ev-amt" style="color:${typeClass==='missed'||typeClass==='legmissed'?'var(--red)':'var(--green)'};">${sign}${amt}</span>`+
+          `<a href="${txUrl}" target="_blank" style="font-size:10px;color:var(--muted);text-decoration:none;">Tx ↗</a>`;
+        list.appendChild(div);
+      }
+    }
+    list.dataset.loaded=_luAddr;
+    statusEl.textContent=(items?items.length:0)+" events · last 24h";
+  }catch(e){
+    console.warn("[lu events]",e);
+    list.innerHTML='<div style="padding:20px;text-align:center;font-family:IBM Plex Mono,monospace;font-size:11px;color:var(--red);">Error loading events: '+(e.message||e).toString().slice(0,60)+'</div>';
+    statusEl.textContent="Error";
+  }finally{
+    if(refreshBtn){refreshBtn.disabled=false;refreshBtn.textContent="🔄 Refresh";}
+  }
+}
+function clearLookup(){
+  document.getElementById("lookup-addr").value="";
+  document.getElementById("lookup-result").style.display="none";
+  document.getElementById("lookup-error").style.display="none";
+  document.getElementById("lookup-clear-btn").style.display="none";
+  _luAddr=null; _luProvider=null;
+  // Reset sub-tab to Home for next search
+  document.querySelectorAll('.lu-pane').forEach(p=>p.classList.toggle('active',p.dataset.luPane==='home'));
+  document.querySelectorAll('.lu-tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.luTab==='home'));
+}
+function copyLuRefLink(){const txt=document.getElementById("lu-ref-link").textContent;if(!txt||txt==="--")return showToast("No link available","error");navigator.clipboard.writeText(txt).then(()=>showToast("Referral link copied!","success")).catch(()=>showToast("Copy manually","error"));}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  USER ID INDEX — UI glue
+// ═══════════════════════════════════════════════════════════════════════════
+function uidUpdateStatusUi(){
+  const countEl = document.getElementById("uid-count");
+  if(countEl){
+    if(UID.addresses.length > 0){
+      countEl.innerHTML = '<span style="color:var(--green);font-weight:700;">'+UID.addresses.length+'</span> users'+
+        (UID.lastScanBlock>0?' · up to block '+UID.lastScanBlock.toLocaleString():'');
+    }else{
+      countEl.textContent = "not built yet — click to scan";
+    }
+  }
+  const rebuildBtn = document.getElementById("uid-rebuild-btn");
+  if(rebuildBtn) rebuildBtn.style.display = UID.addresses.length > 0 ? "inline-block" : "none";
+  // Also update any "My ID" badge on the connected user's dashboard
+  uidRefreshMyBadge();
+}
+async function handleBuildUidIndex(force){
+  const buildBtn = document.getElementById("uid-build-btn");
+  const rebuildBtn = document.getElementById("uid-rebuild-btn");
+  const wrap = document.getElementById("uid-progress-wrap");
+  const bar = document.getElementById("uid-progress-bar");
+  const txt = document.getElementById("uid-progress-txt");
+  const statusEl = document.getElementById("uid-count");
+  if(UID.building){ showToast("Already building index...","info"); return; }
+  buildBtn.disabled = true; if(rebuildBtn) rebuildBtn.disabled = true;
+  wrap.style.display = "flex";
+  bar.style.width = "0%"; txt.textContent = "0%";
+  const ok = await uidBuildOrUpdate({
+    force: !!force,
+    onStatus: (msg) => { if(statusEl) statusEl.textContent = msg; },
+    onProgress: (done, total, found) => {
+      const pct = total>0 ? Math.min(100, (done/total)*100) : 0;
+      bar.style.width = pct.toFixed(1)+"%";
+      txt.textContent = pct.toFixed(1)+"% · "+found+" users";
+    }
+  });
+  buildBtn.disabled = false; if(rebuildBtn) rebuildBtn.disabled = false;
+  setTimeout(()=>{ wrap.style.display = "none"; }, 1200);
+  uidUpdateStatusUi();
+  if(ok){ showToast("ID index updated: "+UID.addresses.length+" users","success"); }
+}
+
+// Badge on connected user's header area showing their own ID
+function uidRefreshMyBadge(){
+  const host = document.getElementById("my-id-badge");
+  if(!host) return;
+  if(WM && WM.wallet){
+    const id = uidGetId(WM.wallet);
+    if(id){ host.style.display = "inline-block"; host.innerHTML = 'ID #'+id; }
+    else { host.style.display = "none"; }
+  }else{
+    host.style.display = "none";
+  }
+}
+
+// Initialize UID on page load: load cache, show status, kick a lightweight incremental update
+(function uidInit(){
+  try{
+    uidLoad();
+    // Defer DOM reads until body parsed
+    const go = () => {
+      uidUpdateStatusUi();
+      // If we have some index data, do a lightweight incremental update in background (non-blocking)
+      if(UID.addresses.length > 0 && UID.lastScanBlock > 0){
+        setTimeout(()=>{ handleBuildUidIndex(false).catch(()=>{}); }, 4000);
+      }
+    };
+    if(document.readyState === "loading"){ document.addEventListener("DOMContentLoaded", go); }
+    else{ go(); }
+  }catch(_){}
+})();
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  UI HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
+function updateRefLink(){if(!WM.wallet)return;document.getElementById("ref-link-display").textContent=location.origin+location.pathname+"?ref="+WM.wallet;}
+function copyRefLink(){const txt=document.getElementById("ref-link-display").textContent;if(!txt||txt==="Connect wallet to generate link")return showToast("Connect wallet first","error");navigator.clipboard.writeText(txt).then(()=>showToast("Link copied!","success")).catch(()=>showToast("Copy manually","error"));}
+function startCd(ts){
+  clearInterval(cdTimer);const el=document.getElementById("countdown");el.style.display="block";
+  function tick(){const d=ts-Date.now();if(d<=0){clearInterval(cdTimer);el.style.display="none";document.getElementById("c-next").textContent="Now OK";document.getElementById("claim-btn").disabled=false;return;}const h=String(Math.floor(d/3600000)).padStart(2,"0"),m=String(Math.floor(d%3600000/60000)).padStart(2,"0"),s=String(Math.floor(d%60000/1000)).padStart(2,"0");el.textContent=h+":"+m+":"+s;document.getElementById("c-next").textContent="in "+h+"h "+m+"m";}
+  tick();cdTimer=setInterval(tick,1000);
+}
+let _tt;
+function showToast(msg,type="info"){const el=document.getElementById("toast");el.textContent=msg;el.className="show "+type;clearTimeout(_tt);_tt=setTimeout(()=>{el.className=type;},3500);}
+function showBanner(icon,title,msg,txHash){
+  document.getElementById("sb-icon").textContent=icon;
+  document.getElementById("sb-title").textContent=title;
+  document.getElementById("sb-msg").textContent=msg;
+  const txEl=document.getElementById("sb-tx");
+  if(txHash)txEl.innerHTML='Tx: <a href="'+EXPLORER+'/tx/'+txHash+'" target="_blank">'+txHash.slice(0,20)+'...'+txHash.slice(-8)+'</a>';
+  else txEl.innerHTML="";
+  document.getElementById("success-banner").classList.add("show");
+}
+function closeBanner(){document.getElementById("success-banner").classList.remove("show");}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  EVENT FEED
+// ═══════════════════════════════════════════════════════════════════════════
+function addrToTopic(addr){return "0x000000000000000000000000"+addr.toLowerCase().replace("0x","");}
+
+function decodeEventLog(log,type){
+  try{
+    const from="0x"+log.topics[1].slice(26);
+    const to="0x"+log.topics[2].slice(26);
+    const dec=ethers.AbiCoder.defaultAbiCoder().decode(["uint256","uint256"],log.data);
+    return{type,from:ethers.getAddress(from),to:ethers.getAddress(to),level:Number(dec[0]),amount:dec[1],blockNumber:Number(log.blockNumber),txHash:log.transactionHash,time:"block #"+Number(log.blockNumber)};
+  }catch(e){console.warn("[decodeEventLog]",e);return null;}
+}
+
+function setFeedStatus(dot,txt){document.getElementById("feed-dot").className="feed-dot "+dot;document.getElementById("feed-txt").textContent=txt;}
+function setFeedFilter(f){
+  evFilter=f;
+  document.getElementById("ff-all").className="feed-filter"+(f==="all"?" active-all":"");
+  document.getElementById("ff-income").className="feed-filter"+(f==="income"?" active-income":"");
+  document.getElementById("ff-missed").className="feed-filter"+(f==="missed"?" active-missed":"");
+  document.getElementById("ff-legclaim").className="feed-filter"+(f==="legclaim"?" active-legclaim":"");
+  renderFeed();
+}
+function addEvItem(item){
+  if(!item)return;
+  const key=item.txHash+"-"+item.level+"-"+item.type;
+  if(evItems.some(e=>e.txHash+"-"+e.level+"-"+e.type===key))return;
+  evItems.unshift(item);if(evItems.length>MAX_FEED)evItems.pop();renderFeed();
+}
+function renderFeed(){
+  const list=document.getElementById("event-list");
+  const filtered=evItems.filter(e=>evFilter==="all"||(evFilter===e.type)||(evFilter==="legclaim"&&e.type==="legmissed"));
+  if(!filtered.length){list.innerHTML='<div class="ev-empty">No events found. Try "Load more".</div>';return;}
+  const short=a=>a.slice(0,6)+"..."+a.slice(-4);
+  list.innerHTML="";
+  filtered.forEach(e=>{
+    const isMissed=e.type==="missed"||e.type==="legmissed";
+    const amtStr=parseFloat(ethers.formatUnits(e.amount,tokDec)).toFixed(4)+" "+tokSym;
+    let typeLbl="",typeClass="",sign="";
+    if(e.type==="income"){typeLbl="Income L"+e.level;typeClass="income";sign="+";}
+    else if(e.type==="missed"){typeLbl="Missed L"+e.level;typeClass="missed";sign="-";}
+    else if(e.type==="legclaim"){typeLbl="Leg-Claim L"+e.level;typeClass="legclaim";sign="+";}
+    else if(e.type==="legmissed"){typeLbl="Leg Missed L"+e.level;typeClass="legmissed";sign="-";}
+    else{typeLbl=e.type+" L"+e.level;typeClass="income";sign="+";}
+    const txUrl=e.txHash?EXPLORER+"/tx/"+e.txHash:"#";
+    const fromLabel=isMissed?"passed from "+short(e.from):"from "+short(e.from);
+    const div=document.createElement("div");
+    div.className="lu-ev-item";
+    div.innerHTML=`<span class="lu-ev-type ${typeClass}">${typeLbl}</span>`+
+      `<span class="lu-ev-amt" style="color:${isMissed?'var(--red)':(e.type==='legclaim'?'#34d399':'var(--green)')};">${sign}${amtStr}</span>`+
+      `<span style="font-size:10px;color:var(--muted);flex-basis:100%;margin-top:-2px;">${fromLabel} · ${e.time||''}</span>`+
+      (e.txHash?`<a href="${txUrl}" target="_blank" style="font-size:10px;color:var(--muted);text-decoration:none;">Tx ↗</a>`:'');
+    list.appendChild(div);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  BSC RPC HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
+const BSC_RPCS=["https://bsc.publicnode.com","https://bsc-dataseed.binance.org/","https://bsc-dataseed1.binance.org/","https://bsc-dataseed2.binance.org/","https://bsc-dataseed3.binance.org/"];
+let _rpcId=1;
+async function bscRpc(method,params){
+  const id=_rpcId++;let lastErr;
+  for(const rpc of BSC_RPCS){
+    try{const res=await fetch(rpc,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({jsonrpc:"2.0",id,method,params})});const j=await res.json();if(j.error){lastErr=new Error(j.error.message);continue;}return j.result;}catch(e){lastErr=e;}
+  }
+  throw lastErr||new Error("All BSC RPCs failed");
+}
+async function bscGetLogs(filter){return await bscRpc("eth_getLogs",[filter]);}
+async function bscGetBlockNumber(){return parseInt(await bscRpc("eth_blockNumber",[]),16);}
+async function bscGetBlock(blockNum){return await bscRpc("eth_getBlockByNumber",["0x"+blockNum.toString(16),false]);}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  USER ID SYSTEM — address ↔ sequential-ID map built from DepositEvent logs
+//  Each address's ID = 1-based index of its FIRST DepositEvent (registration)
+// ═══════════════════════════════════════════════════════════════════════════
+const UID_STORAGE_KEY = "trance_uid_v1_" + CONTRACT_ADDRESS.toLowerCase();
+const UID_DEPOSIT_TOPIC = ethers.id("DepositEvent(address,uint256,bool)");
+let UID = {
+  addresses: [],      // ordered list of unique depositor addresses
+  addrToId: {},       // lower-case address → ID (1-based)
+  lastScanBlock: 0,   // last block we've scanned up to (inclusive)
+  building: false,    // whether a scan is currently running
+  totalUsers: 0       // contract's totalUsers() for comparison
+};
+
+function uidLoad(){
+  try{
+    const raw = localStorage.getItem(UID_STORAGE_KEY);
+    if(!raw) return false;
+    const obj = JSON.parse(raw);
+    if(!obj || !Array.isArray(obj.addresses)) return false;
+    UID.addresses = obj.addresses;
+    UID.lastScanBlock = obj.lastScanBlock || 0;
+    UID.addrToId = {};
+    obj.addresses.forEach((a,i)=>{ UID.addrToId[a.toLowerCase()] = i+1; });
+    return true;
+  }catch(_){ return false; }
+}
+function uidSave(){
+  try{
+    localStorage.setItem(UID_STORAGE_KEY, JSON.stringify({
+      addresses: UID.addresses,
+      lastScanBlock: UID.lastScanBlock
+    }));
+  }catch(_){}
+}
+function uidGetId(addr){
+  if(!addr) return null;
+  return UID.addrToId[addr.toLowerCase()] || null;
+}
+function uidGetAddress(id){
+  const i = Number(id);
+  if(!Number.isFinite(i) || i < 1 || i > UID.addresses.length) return null;
+  return UID.addresses[i-1];
+}
+// Parse user input: numeric → address via ID map; "0x..." → address directly
+function uidResolveInput(input){
+  const s = String(input||"").trim();
+  if(!s) return null;
+  if(ethers.isAddress(s)) return s;
+  if(/^\d+$/.test(s)){ const a = uidGetAddress(s); return a || null; }
+  return null;
+}
+
+// Binary search for contract deployment block via eth_getCode
+async function findContractDeployBlock(){
+  try{
+    const latest = await bscGetBlockNumber();
+    const codeNow = await bscRpc("eth_getCode", [CONTRACT_ADDRESS, "latest"]);
+    if(!codeNow || codeNow === "0x") return null;
+    let lo = 1, hi = latest;
+    // Give up if > 30 iterations (shouldn't happen; log2(100M) ≈ 27)
+    for(let i=0; i<30 && lo < hi; i++){
+      const mid = Math.floor((lo + hi) / 2);
+      try{
+        const code = await bscRpc("eth_getCode", [CONTRACT_ADDRESS, "0x"+mid.toString(16)]);
+        if(!code || code === "0x") lo = mid + 1;
+        else hi = mid;
+      }catch(_){ lo = mid + 1; }
+    }
+    return lo;
+  }catch(_){ return null; }
+}
+
+// Scan DepositEvent logs and extend the ID map. `onProgress(done, total, foundCount)` optional.
+// chunkSize is aggressive (50k) with fallback to smaller on error.
+async function uidScanRange(fromBlock, toBlock, onProgress){
+  if(fromBlock > toBlock) return 0;
+  const seen = new Set(UID.addresses.map(a=>a.toLowerCase()));
+  let cursor = fromBlock;
+  let addedCount = 0;
+  const TOTAL = toBlock - fromBlock + 1;
+  let CHUNK = 50000;
+  while(cursor <= toBlock){
+    const end = Math.min(cursor + CHUNK - 1, toBlock);
+    let logs = null;
+    try{
+      logs = await bscGetLogs({
+        address: CONTRACT_ADDRESS,
+        topics: [UID_DEPOSIT_TOPIC],
+        fromBlock: "0x"+cursor.toString(16),
+        toBlock: "0x"+end.toString(16)
+      });
+    }catch(e){
+      // Shrink chunk and retry at the same cursor
+      if(CHUNK > 2000){ CHUNK = Math.max(2000, Math.floor(CHUNK/4)); continue; }
+      // Skip this chunk silently if even 2k fails
+      cursor = end + 1; UID.lastScanBlock = end; continue;
+    }
+    if(Array.isArray(logs) && logs.length){
+      // Group logs by block to preserve on-chain order; logs come back pre-sorted but tx order matters
+      // Use log order as-is (RPC returns chronological by block then tx index then log index)
+      for(const l of logs){
+        const addrHex = "0x" + (l.topics && l.topics[1] ? l.topics[1].slice(-40) : "");
+        if(!ethers.isAddress(addrHex)) continue;
+        const key = addrHex.toLowerCase();
+        if(!seen.has(key)){
+          seen.add(key);
+          const checksummed = ethers.getAddress(addrHex);
+          UID.addresses.push(checksummed);
+          UID.addrToId[key] = UID.addresses.length;
+          addedCount++;
+        }
+      }
+    }
+    UID.lastScanBlock = end;
+    cursor = end + 1;
+    if(onProgress){
+      try{ onProgress(cursor - fromBlock, TOTAL, UID.addresses.length); }catch(_){}
+    }
+    // Periodic save so progress survives page close
+    if(addedCount > 0 && addedCount % 50 === 0) uidSave();
+  }
+  uidSave();
+  return addedCount;
+}
+
+// Build (or incrementally extend) the ID map. Returns true if built/updated.
+async function uidBuildOrUpdate(opts){
+  if(UID.building) return false;
+  UID.building = true;
+  const { force = false, onProgress = null, onStatus = null } = opts || {};
+  try{
+    if(onStatus) onStatus("Checking block range...");
+    const latest = await bscGetBlockNumber();
+    let fromBlock;
+    if(!force && UID.lastScanBlock > 0){
+      fromBlock = UID.lastScanBlock + 1;
+    }else{
+      if(onStatus) onStatus("Finding contract deploy block...");
+      const deployBlock = await findContractDeployBlock();
+      fromBlock = deployBlock || 1;
+      if(force){ UID.addresses = []; UID.addrToId = {}; UID.lastScanBlock = 0; }
+    }
+    if(fromBlock > latest){
+      if(onStatus) onStatus("Index up to date");
+      return false;
+    }
+    if(onStatus) onStatus("Scanning deposits…");
+    const added = await uidScanRange(fromBlock, latest, onProgress);
+    if(onStatus) onStatus("Done · "+UID.addresses.length+" users indexed"+(added>0?" (+"+added+")":""));
+    return true;
+  }catch(e){
+    if(onStatus) onStatus("Error: "+(e.message||e).toString().slice(0,50));
+    return false;
+  }finally{
+    UID.building = false;
+  }
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  DEEPEST-TIP FINDER — BFS down a leg subtree to find the actual deepest user
+//  Replaces the old greedy "always last child" walk which could miss deep nodes
+//  that live under earlier siblings.
+// ═══════════════════════════════════════════════════════════════════════════
+async function findDeepestTip(startAddr, contract, maxLevels=55, maxNodesPerLevel=6){
+  if(!startAddr || startAddr===ethers.ZeroAddress) return null;
+  let frontier=[startAddr];
+  let deepest=startAddr;
+  for(let d=0; d<maxLevels; d++){
+    if(!frontier.length) break;
+    const slice=frontier.slice(0, maxNodesPerLevel);
+    const results=await Promise.all(slice.map(a=>contract.getDirectLegs(a).catch(()=>[])));
+    const next=[];
+    for(const arr of results){
+      if(arr && arr.length){
+        for(const k of arr) if(k && k!==ethers.ZeroAddress) next.push(k);
+      }
+    }
+    if(!next.length) break;
+    deepest=next[next.length-1]; // most recently joined node at this level
+    frontier=next;
+  }
+  return deepest;
+}
+async function resolveLegTip(leg, contract){
+  // Prefer chainTip from contract (authoritative when set), then walk DOWN
+  // from it in case a newer joining happened that the contract index missed.
+  // If chainTip is zero, start from legRoot and BFS down.
+  const hasTip = leg.chainTip && leg.chainTip!==ethers.ZeroAddress;
+  const start = hasTip ? leg.chainTip : leg.legRoot;
+  if(!start || start===ethers.ZeroAddress) return null;
+  try{
+    const tip = await findDeepestTip(start, contract);
+    return tip || start;
+  }catch(_){ return start; }
+}
+
+async function fetchWalletLogs(wallet,fromBlk,toBlk){
+  const walletTopic=addrToTopic(wallet);
+  const fromHex="0x"+fromBlk.toString(16);
+  const toHex=toBlk==="latest"?"latest":"0x"+toBlk.toString(16);
+  const[incRaw,missRaw,lcRaw,lcmRaw]=await Promise.all([
+    bscGetLogs({address:CONTRACT_ADDRESS,topics:[TOPIC_LEVEL_INCOME,null,walletTopic],fromBlock:fromHex,toBlock:toHex}),
+    bscGetLogs({address:CONTRACT_ADDRESS,topics:[TOPIC_MISSED_INCOME,null,walletTopic],fromBlock:fromHex,toBlock:toHex}),
+    bscGetLogs({address:CONTRACT_ADDRESS,topics:[TOPIC_LEG_CLAIM_BONUS,null,walletTopic],fromBlock:fromHex,toBlock:toHex}).catch(()=>[]),
+    bscGetLogs({address:CONTRACT_ADDRESS,topics:[TOPIC_LEG_CLAIM_MISSED,null,walletTopic],fromBlock:fromHex,toBlock:toHex}).catch(()=>[])
+  ]);
+  return[
+    ...incRaw.map(l=>decodeEventLog(l,"income")),
+    ...missRaw.map(l=>decodeEventLog(l,"missed")),
+    ...lcRaw.map(l=>decodeEventLog(l,"legclaim")),
+    ...lcmRaw.map(l=>decodeEventLog(l,"legmissed"))
+  ].filter(Boolean).sort((a,b)=>b.blockNumber-a.blockNumber);
+}
+
+async function loadPastEvents(blockRange){
+  if(!trance||!WM.wallet)return;
+  setFeedStatus("loading","Loading events...");
+  try{
+    const latest=await bscGetBlockNumber();
+    const startBlk=Math.max(0,latest-Number(blockRange));
+    fromBlock=BigInt(startBlk);
+    const items=await fetchWalletLogs(WM.wallet,startBlk,latest);
+    evItems=items;renderFeed();enrichTimestamps(items);
+    fromBlock=BigInt(latest)+1n;
+    setFeedStatus("live","Live");
+  }catch(e){setFeedStatus("off","Error: "+(e.message||e).slice(0,40));console.warn("[loadPastEvents]",e);}
+}
+async function enrichTimestamps(items){
+  const blockNums=[...new Set(items.map(i=>i.blockNumber))].slice(0,30);
+  for(const bn of blockNums){
+    try{const blk=await bscGetBlock(bn);if(!blk)continue;const t=new Date(parseInt(blk.timestamp,16)*1000).toLocaleString();evItems.forEach(i=>{if(i.blockNumber===bn)i.time=t;});}catch(_){}
+  }
+  renderFeed();
+}
+let _liveTimer=null;
+function startLiveEvents(){
+  if(!trance||!WM.wallet)return;
+  stopEventListeners();
+  setFeedStatus("live","Live");
+  _liveTimer=setInterval(async()=>{
+    if(!WM.wallet)return;
+    try{
+      const latest=await bscGetBlockNumber();
+      const pollFrom=Number(fromBlock);
+      if(pollFrom>latest)return;
+      const walletTopic=addrToTopic(WM.wallet);
+      const[incRaw,missRaw,lcRaw]=await Promise.all([
+        bscGetLogs({address:CONTRACT_ADDRESS,topics:[TOPIC_LEVEL_INCOME,null,walletTopic],fromBlock:"0x"+pollFrom.toString(16),toBlock:"0x"+latest.toString(16)}).catch(()=>[]),
+        bscGetLogs({address:CONTRACT_ADDRESS,topics:[TOPIC_MISSED_INCOME,null,walletTopic],fromBlock:"0x"+pollFrom.toString(16),toBlock:"0x"+latest.toString(16)}).catch(()=>[]),
+        bscGetLogs({address:CONTRACT_ADDRESS,topics:[TOPIC_LEG_CLAIM_BONUS,null,walletTopic],fromBlock:"0x"+pollFrom.toString(16),toBlock:"0x"+latest.toString(16)}).catch(()=>[])
+      ]);
+      fromBlock=BigInt(latest)+1n;
+      incRaw.forEach(log=>{const item=decodeEventLog(log,"income");if(!item)return;item.time="just now";addEvItem(item);showToast("LevelIncome L"+item.level+" +"+parseFloat(ethers.formatUnits(item.amount,tokDec)).toFixed(4)+" "+tokSym,"success");refreshAll().catch(()=>{});});
+      missRaw.forEach(log=>{const item=decodeEventLog(log,"missed");if(!item)return;item.time="just now";addEvItem(item);showToast("MissedIncome L"+item.level,"error");});
+      lcRaw.forEach(log=>{const item=decodeEventLog(log,"legclaim");if(!item)return;item.time="just now";addEvItem(item);showToast("LegClaim L"+item.level+" +"+parseFloat(ethers.formatUnits(item.amount,tokDec)).toFixed(4)+" "+tokSym,"success");refreshAll().catch(()=>{});});
+    }catch(_){}
+  },15000);
+}
+function stopEventListeners(){clearInterval(_liveTimer);_liveTimer=null;setFeedStatus("off","Not connected");}
+async function loadMoreEvents(){
+  if(!WM.wallet)return;
+  const btn=document.getElementById("load-more-btn");
+  btn.disabled=true;btn.textContent="Loading...";
+  try{
+    const lookBack=1000n,endBlock=fromBlock-1n;
+    const startBlock=endBlock>lookBack?endBlock-lookBack:0n;
+    fromBlock=startBlock;
+    const items=await fetchWalletLogs(WM.wallet,Number(startBlock),Number(endBlock));
+    const existing=new Set(evItems.map(e=>e.txHash+"-"+e.level+"-"+e.type));
+    const newOnes=items.filter(i=>!existing.has(i.txHash+"-"+i.level+"-"+i.type));
+    evItems=[...evItems,...newOnes].slice(0,MAX_FEED);renderFeed();enrichTimestamps(newOnes);
+    showToast("Loaded "+newOnes.length+" events","info");
+  }catch(e){showToast("Error: "+(e.message||e).slice(0,60),"error");console.warn(e);}
+  finally{btn.disabled=false;btn.textContent="Load more";}
+}
+</script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+//  BOTTOM NAVIGATION — Tab switching
+// ═══════════════════════════════════════════════════════════════════════════
+function showTab(name){
+  // Toggle pane visibility
+  document.querySelectorAll('.tab-pane').forEach(p=>{
+    p.classList.toggle('active', p.dataset.tab===name);
+  });
+  // Toggle bottom-nav active state
+  document.querySelectorAll('.bn-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.target===name);
+  });
+  // Refresh empty-state placeholders
+  refreshTabEmptyStates();
+  // Scroll to top so user sees the new section from the start
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function refreshTabEmptyStates(){
+  // For each empty-state placeholder, hide it if any sibling card in the same
+  // pane is actually visible (i.e. wallet is connected and content is rendered).
+  document.querySelectorAll('.tab-empty').forEach(el=>{
+    const pane = el.closest('.tab-pane');
+    if(!pane) return;
+    let hasVisibleContent = false;
+    pane.querySelectorAll(':scope > *').forEach(child=>{
+      if(child===el || child.classList.contains('tab-empty')) return;
+      const cs = getComputedStyle(child);
+      if(cs.display !== 'none' && cs.visibility !== 'hidden'){
+        hasVisibleContent = true;
+      }
+    });
+    el.style.display = hasVisibleContent ? 'none' : 'block';
+  });
+}
+
+// Refresh empty-states whenever wallet state may have changed.
+// We poll lightly because the existing app code mutates inline display styles
+// directly on cards (#pool-banner, #stats-grid, #panels-deposit, etc.) when
+// the wallet connects/disconnects — we just react to those changes.
+setInterval(refreshTabEmptyStates, 1500);
+
+// Initial state on page load
+document.addEventListener('DOMContentLoaded', ()=>{
+  refreshTabEmptyStates();
+});
+// Also run once immediately in case DOMContentLoaded already fired
+refreshTabEmptyStates();
+</script>
+</body>
+</html>
